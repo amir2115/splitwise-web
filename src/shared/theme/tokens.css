@@ -1,0 +1,97 @@
+@font-face {
+  font-family: 'IranYekan';
+  src: url('../../assets/fonts/iran_yekan_regular.ttf') format('truetype');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'IranYekan';
+  src: url('../../assets/fonts/iran_yekan_medium.ttf') format('truetype');
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: 'IranYekan';
+  src: url('../../assets/fonts/iran_yekan_bold.ttf') format('truetype');
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'IranYekan';
+  src: url('../../assets/fonts/iran_yekan_extra_bold.ttf') format('truetype');
+  font-weight: 800;
+}
+
+:root {
+  --font-app: 'IranYekan', sans-serif;
+  --color-primary: #0f766e;
+  --color-on-primary: #ffffff;
+  --color-secondary: #1d4ed8;
+  --color-on-secondary: #ffffff;
+  --color-tertiary: #b45309;
+  --color-background: #f7f7f2;
+  --color-on-background: #122023;
+  --color-surface: #fffaf3;
+  --color-surface-strong: #fffaf3;
+  --color-surface-variant: #e3e8dd;
+  --color-on-surface: #122023;
+  --color-on-surface-variant: #415458;
+  --color-outline: #8b9494;
+  --color-error: #b91c1c;
+  --background-gradient: linear-gradient(180deg, #f7f7f2 0%, #f3f6f2 100%);
+  --hero-accent: rgba(15, 118, 110, 0.06);
+  --hero-icon-surface: rgba(255, 252, 245, 0.9);
+  --shadow-card: 0 18px 42px rgba(18, 32, 35, 0.08);
+  --radius-xl: 32px;
+  --radius-lg: 28px;
+  --radius-md: 24px;
+  --radius-sm: 18px;
+  --content-width: 760px;
+}
+
+:root[data-theme='dark'] {
+  --color-primary: #5eead4;
+  --color-on-primary: #072f2d;
+  --color-secondary: #93c5fd;
+  --color-on-secondary: #0b2a4b;
+  --color-tertiary: #f9c46b;
+  --color-background: #101b1d;
+  --color-on-background: #f1f6f4;
+  --color-surface: #172427;
+  --color-surface-strong: #172427;
+  --color-surface-variant: #334045;
+  --color-on-surface: #f6f8f3;
+  --color-on-surface-variant: #c2cfd0;
+  --color-outline: #8a989a;
+  --color-error: #ff8a80;
+  --background-gradient: linear-gradient(180deg, #0d1719 0%, #112226 55%, #142a2f 100%);
+  --hero-accent: rgba(94, 234, 212, 0.08);
+  --hero-icon-surface: rgba(23, 36, 39, 0.18);
+  --shadow-card: 0 24px 48px rgba(0, 0, 0, 0.28);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-app);
+  background: var(--background-gradient);
+  color: var(--color-on-background);
+}
+
+button,
+input,
+textarea,
+select,
+a {
+  font: inherit;
+  color: inherit;
+}
