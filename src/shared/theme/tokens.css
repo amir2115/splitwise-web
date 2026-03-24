@@ -42,6 +42,9 @@
   --hero-accent: rgba(15, 118, 110, 0.06);
   --hero-icon-surface: rgba(255, 252, 245, 0.9);
   --shadow-card: 0 18px 42px rgba(18, 32, 35, 0.08);
+  --interactive-press-tint: rgba(18, 32, 35, 0.08);
+  --interactive-hover-tint: rgba(15, 118, 110, 0.08);
+  --interactive-focus-ring: rgba(15, 118, 110, 0.2);
   --radius-xl: 32px;
   --radius-lg: 28px;
   --radius-md: 24px;
@@ -68,6 +71,9 @@
   --hero-accent: rgba(94, 234, 212, 0.08);
   --hero-icon-surface: rgba(23, 36, 39, 0.18);
   --shadow-card: 0 24px 48px rgba(0, 0, 0, 0.28);
+  --interactive-press-tint: rgba(241, 246, 244, 0.12);
+  --interactive-hover-tint: rgba(94, 234, 212, 0.1);
+  --interactive-focus-ring: rgba(94, 234, 212, 0.24);
 }
 
 * {
@@ -94,4 +100,11 @@ select,
 a {
   font: inherit;
   color: inherit;
+}
+
+button {
+  font-family: var(--font-app);
+  -webkit-appearance: none;
+  appearance: none;
+  letter-spacing: 0;
 }

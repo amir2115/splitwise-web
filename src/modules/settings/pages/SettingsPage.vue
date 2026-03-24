@@ -33,13 +33,14 @@ function signOut() {
     <section class="account-section-card">
       <div class="page-stack" style="gap: 14px;">
         <strong class="settings-section-title">{{ strings.accountTitle }}</strong>
-        <div class="settings-account-meta">
-          <strong>{{ accountLabel }}</strong>
-          <span class="muted">{{ strings.accountSignedInAs }}</span>
+        <div class="settings-account-row">
+          <div class="settings-account-meta">
+            <strong>{{ accountLabel }}</strong>
+          </div>
+          <button v-if="user" class="outline-button is-danger settings-logout-button" type="button" @click="signOut">
+            {{ strings.signOut }}
+          </button>
         </div>
-        <button class="outline-button is-danger settings-logout-button" type="button" @click="signOut">
-          {{ strings.signOut }}
-        </button>
       </div>
     </section>
 

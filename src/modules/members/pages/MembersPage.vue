@@ -93,13 +93,13 @@ async function removeMember(id: string) {
 
     <div class="list-stack">
       <article v-for="member in members" :key="member.id" class="surface-card" style="padding: 16px;">
-        <div class="detail-line">
-          <div>
+        <div class="detail-line detail-line--keep-row">
+          <div style="min-width: 0; flex: 1;">
             <div class="page-topbar__title" style="font-size: 16px;">@{{ member.username }}</div>
             <div class="muted">{{ formatDate(member.created_at, language) }}</div>
             <div v-if="member.membership_status === 'PENDING_INVITE'" class="muted" style="margin-top: 4px;">{{ strings.pendingInviteLabel }}</div>
           </div>
-          <div class="card-actions">
+          <div class="card-actions card-actions--inline">
             <button class="icon-button" type="button" @click="openEdit(member.id, member.username)">✎</button>
             <button class="icon-button" type="button" @click="removeMember(member.id)">🗑</button>
           </div>

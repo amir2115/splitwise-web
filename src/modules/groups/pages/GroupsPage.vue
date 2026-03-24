@@ -138,15 +138,24 @@ async function rejectInvite(inviteId: string) {
     </div>
 
     <div class="list-stack">
-      <article v-for="group in groups" :key="group.id" class="surface-card">
-        <div class="detail-line" style="align-items: flex-start;">
-          <div style="flex: 1; cursor: pointer;" @click="router.push(`/groups/${group.id}`)">
+      <article
+        v-for="group in groups"
+        :key="group.id"
+        class="surface-card surface-card--interactive"
+        tabindex="0"
+        role="button"
+        @click="router.push(`/groups/${group.id}`)"
+        @keydown.enter.prevent="router.push(`/groups/${group.id}`)"
+        @keydown.space.prevent="router.push(`/groups/${group.id}`)"
+      >
+        <div class="detail-line detail-line--keep-row">
+          <div style="flex: 1; min-width: 0;">
             <div class="page-topbar__title">{{ group.name }}</div>
             <div class="muted">{{ formatDate(group.created_at, language) }}</div>
           </div>
-          <div class="card-actions group-card-actions">
-            <button class="icon-button" type="button" @click="openEdit(group.id, group.name)">✎</button>
-            <button class="icon-button" type="button" @click="removeGroup(group.id)">🗑</button>
+          <div class="card-actions group-card-actions card-actions--inline">
+            <button class="icon-button" type="button" @click.stop="openEdit(group.id, group.name)">✎</button>
+            <button class="icon-button" type="button" @click.stop="removeGroup(group.id)">🗑</button>
           </div>
         </div>
       </article>

@@ -44,6 +44,10 @@
   padding: 18px;
 }
 
+.surface-card--interactive {
+  cursor: pointer;
+}
+
 .surface-card--flat {
   background: color-mix(in srgb, var(--color-surface) 98%, transparent);
 }
@@ -199,13 +203,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
-  transition: transform 0.2s ease, border-color 0.2s ease;
   color: var(--color-on-surface);
-}
-
-.action-card:hover,
-.selection-card:hover {
-  transform: translateY(-1px);
 }
 
 .action-card__icon {
@@ -238,6 +236,11 @@
   align-items: flex-start;
 }
 
+.detail-line--keep-row {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
 .detail-line__value {
   color: var(--color-primary);
   font-weight: 600;
@@ -262,6 +265,62 @@
 .setting-option {
   border: none;
   cursor: pointer;
+}
+
+button,
+a,
+.action-card,
+.selection-card,
+.setting-option,
+.nav-item,
+.surface-card--interactive,
+[role='button'] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.outline-button,
+.filled-button,
+.icon-button,
+.nav-item,
+.action-card,
+.selection-card,
+.setting-option,
+.surface-card--interactive {
+  position: relative;
+  overflow: hidden;
+  transition:
+    background-color 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.outline-button:focus-visible,
+.filled-button:focus-visible,
+.icon-button:focus-visible,
+.nav-item:focus-visible,
+.action-card:focus-visible,
+.selection-card:focus-visible,
+.setting-option:focus-visible,
+.surface-card--interactive:focus-visible,
+a:focus-visible,
+button:focus-visible,
+[role='button']:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--interactive-focus-ring);
+}
+
+.outline-button:active,
+.filled-button:active,
+.icon-button:active,
+.nav-item:active,
+.action-card:active,
+.selection-card:active,
+.setting-option:active,
+.surface-card--interactive:active {
+  box-shadow: inset 0 0 0 999px var(--interactive-press-tint);
 }
 
 .chip,
@@ -330,6 +389,24 @@
   border-radius: 20px;
   background: color-mix(in srgb, var(--color-surface) 88%, white);
   color: var(--color-on-surface);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .action-card:hover,
+  .selection-card:hover,
+  .setting-option:hover,
+  .nav-item:hover,
+  .surface-card--interactive:hover,
+  .outline-button:hover,
+  .filled-button:hover,
+  .icon-button:hover {
+    box-shadow: inset 0 0 0 999px var(--interactive-hover-tint);
+  }
+
+  .action-card:hover,
+  .selection-card:hover {
+    transform: translateY(-1px);
+  }
 }
 
 .filled-button:disabled,
@@ -646,6 +723,15 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.settings-account-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .settlement-summary-card {
@@ -724,7 +810,11 @@
   min-width: 112px;
   min-height: 40px;
   padding-inline: 18px;
-  align-self: flex-start;
+  flex: 0 0 auto;
+  align-self: center;
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 500;
 }
 
 .card-actions,
@@ -734,8 +824,29 @@
   flex-wrap: wrap;
 }
 
+.modal-topbar {
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  margin: -18px -18px 0;
+  border-radius: 28px 28px 0 0;
+}
+
+.modal-topbar__title {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.5;
+}
+
 .modal-actions > * {
   flex: 1 1 0;
+  min-width: 0;
+}
+
+.card-actions--inline {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-self: center;
+  align-items: center;
 }
 
 .app-appear,
@@ -944,6 +1055,11 @@
     flex-direction: column;
   }
 
+  .detail-line--keep-row {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
   .action-card,
   .selection-card {
     min-height: auto;
@@ -1011,16 +1127,22 @@
   }
 
   .modal-actions {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: nowrap;
   }
 
   .modal-actions > * {
-    width: 100%;
-    flex: 1 1 auto;
+    width: auto;
+    flex: 1 1 0;
   }
 
   .card-actions {
     flex-direction: column;
+  }
+
+  .card-actions--inline {
+    flex-direction: row;
+    flex-wrap: nowrap;
   }
 
   .group-card-actions {
