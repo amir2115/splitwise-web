@@ -115,3 +115,19 @@ export interface GroupBalanceResponse {
   balances: MemberBalance[]
   simplified_debts: SimplifiedDebt[]
 }
+
+export interface AppDownloadContent {
+  title: string
+  subtitle: string
+  app_icon_url: string | null
+  version_name: string | null
+  version_code: number | null
+  release_date: string | null
+  file_size: string | null
+  bazaar_url: string | null
+  myket_url: string | null
+  direct_download_url: string | null
+  release_notes: string[]
+  primary_badge_text: string | null
+  is_direct_download_enabled: boolean
+}

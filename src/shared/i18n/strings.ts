@@ -144,6 +144,23 @@ export interface AppStrings {
   installAppDismiss: string
   iosInstallTitle: string
   iosInstallBody: string
+  downloadApplicationTitle: string
+  downloadApplicationSubtitle: string
+  downloadPageTitle: string
+  downloadPageErrorTitle: string
+  downloadPageErrorBody: string
+  downloadPageEmptyTitle: string
+  downloadPageEmptySubtitle: string
+  downloadVersionNotesTitle: string
+  downloadVersionMetaTitle: string
+  downloadStoresTitle: string
+  downloadFromBazaar: string
+  downloadFromMyket: string
+  downloadDirect: string
+  downloadVersionNameLabel: string
+  downloadVersionCodeLabel: string
+  downloadReleaseDateLabel: string
+  downloadFileSizeLabel: string
   languageTitle: string
   themeTitle: string
   persianLabel: string
@@ -292,6 +309,23 @@ const fa: AppStrings = {
   installAppDismiss: 'بعداً',
   iosInstallTitle: 'افزودن به صفحه اصلی',
   iosInstallBody: 'در Safari روی Share بزن و بعد Add to Home Screen را انتخاب کن.',
+  downloadApplicationTitle: 'دانلود اپلیکیشن',
+  downloadApplicationSubtitle: 'لینک بازار، مایکت و دانلود مستقیم را در یک صفحه ببین.',
+  downloadPageTitle: 'دانلود اپلیکیشن',
+  downloadPageErrorTitle: 'بارگذاری اطلاعات دانلود انجام نشد',
+  downloadPageErrorBody: 'اتصال به سرور برقرار نشد یا پاسخ معتبری دریافت نشد. چند لحظه بعد دوباره تلاش کن.',
+  downloadPageEmptyTitle: 'لینک دانلودی ثبت نشده',
+  downloadPageEmptySubtitle: 'بعداً دوباره سر بزن یا با پشتیبانی تماس بگیر.',
+  downloadVersionNotesTitle: 'تغییرات نسخه جدید',
+  downloadVersionMetaTitle: 'جزئیات نسخه',
+  downloadStoresTitle: 'مسیرهای دانلود',
+  downloadFromBazaar: 'دانلود از کافه بازار',
+  downloadFromMyket: 'دانلود از مایکت',
+  downloadDirect: 'دانلود مستقیم',
+  downloadVersionNameLabel: 'نسخه',
+  downloadVersionCodeLabel: 'کد نسخه',
+  downloadReleaseDateLabel: 'تاریخ انتشار',
+  downloadFileSizeLabel: 'حجم فایل',
   languageTitle: 'زبان',
   themeTitle: 'تم',
   persianLabel: 'فارسی',
@@ -440,6 +474,23 @@ const en: AppStrings = {
   installAppDismiss: 'Later',
   iosInstallTitle: 'Add to Home Screen',
   iosInstallBody: 'In Safari, tap Share and then choose Add to Home Screen.',
+  downloadApplicationTitle: 'Download app',
+  downloadApplicationSubtitle: 'Open one page for Bazaar, Myket, and direct APK download.',
+  downloadPageTitle: 'Download app',
+  downloadPageErrorTitle: 'Could not load download details',
+  downloadPageErrorBody: 'The page could not reach the server or received an invalid response. Please try again.',
+  downloadPageEmptyTitle: 'No download link is available yet',
+  downloadPageEmptySubtitle: 'Please check back later or contact support.',
+  downloadVersionNotesTitle: 'What is new',
+  downloadVersionMetaTitle: 'Version details',
+  downloadStoresTitle: 'Download options',
+  downloadFromBazaar: 'Get on Cafe Bazaar',
+  downloadFromMyket: 'Get on Myket',
+  downloadDirect: 'Direct download',
+  downloadVersionNameLabel: 'Version',
+  downloadVersionCodeLabel: 'Build',
+  downloadReleaseDateLabel: 'Release date',
+  downloadFileSizeLabel: 'File size',
   languageTitle: 'Language',
   themeTitle: 'Theme',
   persianLabel: 'فارسی',

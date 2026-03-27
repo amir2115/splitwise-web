@@ -10,6 +10,7 @@ import ExpenseDetailPage from '@/modules/expenses/pages/ExpenseDetailPage.vue'
 import SettlementEditorPage from '@/modules/settlements/pages/SettlementEditorPage.vue'
 import BalancesPage from '@/modules/balances/pages/BalancesPage.vue'
 import SettingsPage from '@/modules/settings/pages/SettingsPage.vue'
+import AppDownloadPage from '@/modules/settings/pages/AppDownloadPage.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -27,6 +28,7 @@ export const router = createRouter({
     { path: '/groups/:groupId/settlement/:settlementId/edit', component: SettlementEditorPage, meta: { requiresAuth: true } },
     { path: '/groups/:groupId/balances', component: BalancesPage, meta: { requiresAuth: true } },
     { path: '/settings', component: SettingsPage, meta: { requiresAuth: true, topLevel: true } },
+    { path: '/download-app', component: AppDownloadPage },
   ],
 })
 
