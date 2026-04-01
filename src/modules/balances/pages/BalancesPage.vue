@@ -173,8 +173,8 @@ onMounted(async () => {
   background:
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--color-surface) 95%, white),
-      color-mix(in srgb, var(--color-primary) 4%, var(--color-surface))
+      color-mix(in srgb, var(--color-surface-strong) 96%, white),
+      color-mix(in srgb, var(--color-surface-accent) 42%, var(--color-surface))
     );
 }
 
@@ -199,18 +199,18 @@ onMounted(async () => {
 }
 
 .balance-member-card__status.is-creditor {
-  background: color-mix(in srgb, var(--color-secondary) 16%, transparent);
-  color: var(--color-secondary);
+  background: var(--color-status-creditor-bg);
+  color: var(--color-status-creditor);
 }
 
 .balance-member-card__status.is-debtor {
-  background: color-mix(in srgb, var(--color-tertiary) 16%, transparent);
-  color: var(--color-tertiary);
+  background: var(--color-status-debtor-bg);
+  color: var(--color-status-debtor);
 }
 
 .balance-member-card__status.is-settled {
-  background: color-mix(in srgb, var(--color-outline) 16%, transparent);
-  color: var(--color-on-surface-variant);
+  background: var(--color-status-settled-bg);
+  color: var(--color-status-settled);
 }
 
 .balance-member-card__metrics {
@@ -222,15 +222,15 @@ onMounted(async () => {
 .balance-metric-tile {
   padding: 14px 16px;
   border-radius: 20px;
-  background: color-mix(in srgb, var(--color-surface) 82%, white);
-  border: 1px solid color-mix(in srgb, var(--color-outline) 10%, transparent);
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border-soft);
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 .balance-metric-tile--net {
-  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  background: var(--color-surface-accent);
 }
 
 .balance-metric-tile__label {

@@ -302,15 +302,15 @@ async function removeExpense() {
 }
 
 .participant-row-card__state.is-creditor {
-  color: var(--color-primary);
+  color: var(--color-status-creditor);
 }
 
 .participant-row-card__state.is-debtor {
-  color: var(--color-tertiary);
+  color: var(--color-status-debtor);
 }
 
 .participant-row-card__state.is-settled {
-  color: var(--color-on-surface-variant);
+  color: var(--color-status-settled);
 }
 
 .participant-row-card__net {
@@ -327,8 +327,8 @@ async function removeExpense() {
   align-items: center;
   justify-content: space-between;
   text-align: center;
-  background: color-mix(in srgb, var(--color-surface) 78%, white);
-  border-color: color-mix(in srgb, var(--color-outline) 16%, transparent);
+  background: var(--color-surface-soft);
+  border-color: var(--color-border-soft);
 }
 
 .participant-stat-tile .muted {
@@ -349,11 +349,11 @@ async function removeExpense() {
 }
 
 .participant-stat-tile--paid {
-  background: color-mix(in srgb, var(--color-surface) 74%, white);
+  background: var(--color-surface-soft);
 }
 
 .participant-stat-tile--owed {
-  background: color-mix(in srgb, var(--color-surface) 72%, white);
+  background: var(--color-surface-accent);
 }
 
 .expense-breakdown-row {
@@ -379,7 +379,7 @@ async function removeExpense() {
 }
 
 .expense-breakdown-row__dot--tertiary {
-  background: var(--color-tertiary);
+  background: var(--color-status-debtor);
 }
 
 .expense-breakdown-row__name {

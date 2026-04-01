@@ -335,7 +335,7 @@ const calculatorRows = [
     linear-gradient(
       180deg,
       color-mix(in srgb, var(--color-primary) 18%, var(--color-surface)),
-      color-mix(in srgb, var(--color-secondary) 10%, var(--color-surface)),
+      color-mix(in srgb, var(--color-primary) 10%, var(--color-surface-accent)),
       color-mix(in srgb, var(--color-surface-variant) 24%, var(--color-surface))
     );
   display: flex;

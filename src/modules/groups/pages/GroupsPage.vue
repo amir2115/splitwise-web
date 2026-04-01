@@ -539,9 +539,9 @@ async function handleTouchEnd() {
 }
 
 .group-delete-dialog__option--leave {
-  background: color-mix(in srgb, var(--color-tertiary) 10%, transparent);
-  border-color: color-mix(in srgb, var(--color-tertiary) 44%, transparent);
-  color: var(--color-tertiary);
+  background: var(--color-status-debtor-bg);
+  border-color: color-mix(in srgb, var(--color-status-debtor) 44%, transparent);
+  color: var(--color-status-debtor);
 }
 
 .group-delete-dialog__option--delete {

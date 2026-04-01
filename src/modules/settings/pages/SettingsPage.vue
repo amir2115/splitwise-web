@@ -186,18 +186,18 @@ function signIn() {
   border-radius: 999px;
   font-size: 13px;
   font-weight: 700;
-  background: color-mix(in srgb, var(--color-outline) 20%, transparent);
-  color: var(--color-on-surface-variant);
+  background: var(--color-status-settled-bg);
+  color: var(--color-status-settled);
 }
 
 .settings-status-badge.is-online {
-  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
-  color: var(--color-primary);
+  background: var(--color-status-creditor-bg);
+  color: var(--color-status-creditor);
 }
 
 .settings-status-badge.is-offline {
-  background: color-mix(in srgb, var(--color-danger) 14%, transparent);
-  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-error) 14%, transparent);
+  color: var(--color-error);
 }
 
 .settings-choice-card {

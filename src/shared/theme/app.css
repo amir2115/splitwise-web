@@ -33,11 +33,11 @@
 
 .surface-card,
 .elevated-card {
-  background: var(--color-surface);
+  background: var(--color-surface-strong);
   color: var(--color-on-surface);
   border-radius: 28px;
-  border: 1px solid color-mix(in srgb, var(--color-outline) 12%, transparent);
-  box-shadow: 0 10px 26px rgba(18, 32, 35, 0.06);
+  border: 1px solid var(--color-border-soft);
+  box-shadow: var(--shadow-card);
 }
 
 .surface-card {
@@ -49,7 +49,7 @@
 }
 
 .surface-card--flat {
-  background: color-mix(in srgb, var(--color-surface) 98%, transparent);
+  background: var(--color-surface);
 }
 
 .editor-card {
@@ -64,7 +64,7 @@
   min-height: 64px;
   margin: -10px -16px 2px;
   padding: 10px 16px;
-  background: color-mix(in srgb, var(--color-background) 92%, transparent);
+  background: color-mix(in srgb, var(--color-background) 82%, var(--color-surface));
   backdrop-filter: blur(16px);
   z-index: 20;
 }
@@ -88,7 +88,7 @@
 .page-topbar__title {
   font-size: 20px;
   line-height: 30px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-on-surface);
   text-align: start;
   overflow: hidden;
@@ -121,8 +121,9 @@
 
 .hero-card {
   padding: 18px;
-  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--hero-accent) 100%, var(--color-surface-strong)), var(--color-surface));
   border-radius: 28px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 10%, var(--color-border-soft));
 }
 
 .hero-card__icon {
@@ -132,7 +133,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, var(--color-surface) 80%, white);
+  background: var(--hero-icon-surface);
   color: var(--color-primary);
   font-size: 24px;
   margin-bottom: 14px;
@@ -149,14 +150,14 @@
   margin: 0;
   color: var(--color-on-surface-variant);
   font-size: 16px;
-  line-height: 28px;
+  line-height: 26px;
 }
 
 .section-title {
   margin: 2px 0 0;
   font-size: 20px;
   line-height: 30px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .summary-grid,
@@ -172,8 +173,8 @@
   min-height: 96px;
   padding: 16px;
   border-radius: 24px;
-  background: color-mix(in srgb, var(--color-surface-variant) 40%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-outline) 10%, transparent);
+  background: color-mix(in srgb, var(--color-surface-soft) 82%, var(--color-surface-strong));
+  border: 1px solid var(--color-border-soft);
 }
 
 .summary-tile__label,
@@ -182,13 +183,13 @@
 .muted {
   color: var(--color-on-surface-variant);
   font-size: 14px;
-  line-height: 24px;
+  line-height: 22px;
 }
 
 .summary-tile__value {
   margin-top: 8px;
-  font-size: 20px;
-  line-height: 30px;
+  font-size: 19px;
+  line-height: 28px;
   font-weight: 700;
 }
 
@@ -196,8 +197,8 @@
   min-height: 94px;
   padding: 16px;
   border-radius: 24px;
-  border: 1px solid color-mix(in srgb, var(--color-outline) 12%, transparent);
-  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-surface-strong);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -213,7 +214,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  background: var(--color-surface-accent);
   color: var(--color-primary);
   font-size: 20px;
   flex-shrink: 0;
@@ -341,8 +342,8 @@ button:focus-visible,
 
 .chip,
 .pill-button {
-  background: transparent;
-  border: 1px solid var(--color-outline);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
   color: var(--color-on-surface);
 }
 
@@ -354,9 +355,9 @@ button:focus-visible,
 }
 
 .outline-button {
-  background: transparent;
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
   color: var(--color-on-surface);
-  border: 1px solid var(--color-outline);
+  border: 1px solid var(--color-border-strong);
 }
 
 .outline-button.is-danger {
@@ -369,7 +370,7 @@ button:focus-visible,
   min-height: 56px;
   padding: 0 18px;
   border-radius: 22px;
-  background: var(--color-primary);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 94%, white), var(--color-primary));
   color: var(--color-on-primary);
   font-weight: 600;
   display: inline-flex;
@@ -388,8 +389,9 @@ button:focus-visible,
   width: 40px;
   height: 40px;
   border-radius: 20px;
-  background: color-mix(in srgb, var(--color-surface) 88%, white);
+  background: var(--color-surface);
   color: var(--color-on-surface);
+  border: 1px solid var(--color-border-soft);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -430,8 +432,8 @@ button:focus-visible,
   min-height: 56px;
   padding: 14px 16px;
   border-radius: 20px;
-  border: 1px solid color-mix(in srgb, var(--color-outline) 34%, transparent);
-  background: transparent;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
   color: var(--color-on-surface);
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -475,11 +477,11 @@ button:focus-visible,
 }
 
 .amount-text--success {
-  color: var(--color-secondary);
+  color: var(--color-status-creditor);
 }
 
 .amount-text--danger {
-  color: var(--color-tertiary);
+  color: var(--color-status-debtor);
 }
 
 .amount-text--md {
@@ -580,8 +582,8 @@ button:focus-visible,
   min-height: 86px;
   padding: 12px 16px;
   border-radius: 22px;
-  border: 1px solid color-mix(in srgb, var(--color-outline) 12%, transparent);
-  background: color-mix(in srgb, var(--color-surface-variant) 28%, transparent);
+  border: 1px solid var(--color-border-soft);
+  background: color-mix(in srgb, var(--color-surface-soft) 76%, var(--color-surface-strong));
 }
 
 .metric-card--wide {
@@ -598,7 +600,7 @@ button:focus-visible,
 .settings-section-card,
 .account-section-card {
   border-radius: 24px;
-  border: 1px solid color-mix(in srgb, var(--color-outline) 12%, transparent);
+  border: 1px solid var(--color-border-soft);
 }
 
 .member-editor-card {
@@ -626,8 +628,8 @@ button:focus-visible,
 }
 
 .selection-card.is-selected {
-  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
-  border-color: color-mix(in srgb, var(--color-primary) 52%, var(--color-outline));
+  background: var(--color-surface-accent);
+  border-color: color-mix(in srgb, var(--color-primary) 36%, var(--color-outline));
 }
 
 .selection-card.is-muted {
@@ -636,8 +638,8 @@ button:focus-visible,
 
 .suggestion-panel {
   padding: 18px;
-  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
-  border-color: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface-accent) 90%, var(--color-surface-strong)), color-mix(in srgb, var(--color-surface-accent) 72%, var(--color-surface)));
+  border-color: color-mix(in srgb, var(--color-primary) 20%, var(--color-border-strong));
   color: var(--color-on-surface);
 }
 
@@ -648,9 +650,9 @@ button:focus-visible,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
+  background: var(--color-surface);
   color: var(--color-on-surface);
-  border: 1px solid var(--color-outline);
+  border: 1px solid var(--color-border-strong);
   font-weight: 600;
 }
 
@@ -714,7 +716,7 @@ button:focus-visible,
 .settings-section-card,
 .account-section-card {
   padding: 18px;
-  background: var(--color-surface);
+  background: color-mix(in srgb, var(--color-surface-strong) 88%, var(--color-surface));
   color: var(--color-on-surface);
 }
 
@@ -722,7 +724,15 @@ button:focus-visible,
   margin: 0;
   font-size: 20px;
   line-height: 30px;
-  font-weight: 600;
+  font-weight: 700;
+}
+
+html[lang='en'] .page-topbar__title,
+html[lang='en'] .hero-card__title,
+html[lang='en'] .section-title,
+html[lang='en'] .settings-section-title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .settings-account-meta {
@@ -747,8 +757,8 @@ button:focus-visible,
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
-  border: 1px solid color-mix(in srgb, var(--color-primary) 14%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface-accent) 82%, var(--color-surface-strong)), color-mix(in srgb, var(--color-surface-accent) 62%, var(--color-surface)));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--color-border-soft));
   color: var(--color-on-surface);
 }
 

@@ -822,9 +822,9 @@ function shareHelperText(member: EnrichedMemberDraft) {
     linear-gradient(
       180deg,
       color-mix(in srgb, var(--color-surface) 84%, var(--color-primary) 6%),
-      color-mix(in srgb, var(--color-surface) 90%, var(--color-secondary) 4%)
+      color-mix(in srgb, var(--color-surface) 92%, var(--color-primary) 4%)
     );
-  border: 1px solid color-mix(in srgb, var(--color-outline) 10%, transparent);
+  border: 1px solid var(--color-border-soft);
 }
 
 .editor-section__eyebrow {
@@ -911,19 +911,19 @@ function shareHelperText(member: EnrichedMemberDraft) {
   gap: 12px;
   padding: 13px 16px;
   border-radius: 20px;
-  border: 1px solid color-mix(in srgb, var(--color-outline) 16%, transparent);
+  border: 1px solid var(--color-border-soft);
 }
 
 .tax-breakdown-row--base {
-  background: color-mix(in srgb, var(--color-surface) 92%, white);
+  background: var(--color-surface-strong);
 }
 
 .tax-breakdown-row--tax {
-  background: color-mix(in srgb, var(--color-surface) 94%, white);
+  background: var(--color-surface-soft);
 }
 
 .tax-breakdown-row--strong {
-  background: color-mix(in srgb, var(--color-surface) 82%, white);
+  background: var(--color-surface-accent);
 }
 
 .tax-breakdown-row span {
@@ -951,7 +951,7 @@ function shareHelperText(member: EnrichedMemberDraft) {
 }
 
 .service-charge-card {
-  background: color-mix(in srgb, var(--color-surface) 86%, var(--color-secondary) 4%);
+  background: color-mix(in srgb, var(--color-surface) 88%, var(--color-primary) 5%);
   gap: 14px;
 }
 
@@ -962,15 +962,15 @@ function shareHelperText(member: EnrichedMemberDraft) {
 .service-charge-preview {
   padding: 12px 14px;
   border-radius: 18px;
-  background: color-mix(in srgb, var(--color-surface-variant) 34%, transparent);
+  background: var(--color-surface-soft);
   color: var(--color-on-surface-variant);
   font-size: 14px;
   line-height: 24px;
 }
 
 .service-charge-preview--error {
-  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
-  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
+  color: var(--color-error);
 }
 
 .service-charge-empty {
@@ -1015,8 +1015,8 @@ function shareHelperText(member: EnrichedMemberDraft) {
 }
 
 .expense-summary-card__badge--warning {
-  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
-  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  color: var(--color-error);
 }
 
 .expense-summary-card__details {
@@ -1036,8 +1036,8 @@ function shareHelperText(member: EnrichedMemberDraft) {
 .member-breakdown-tile {
   border-radius: 22px;
   padding: 14px;
-  background: color-mix(in srgb, var(--color-surface) 84%, white);
-  border: 1px solid color-mix(in srgb, var(--color-outline) 10%, transparent);
+  background: var(--color-surface-strong);
+  border: 1px solid var(--color-border-soft);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1050,26 +1050,26 @@ function shareHelperText(member: EnrichedMemberDraft) {
 }
 
 .expense-summary-tile--accent {
-  background: color-mix(in srgb, var(--color-surface) 88%, white);
+  background: var(--color-surface-soft);
 }
 
 .expense-summary-tile--strong,
 .member-breakdown-tile--strong {
-  background: color-mix(in srgb, var(--color-surface) 76%, white);
+  background: var(--color-surface-accent);
 }
 
 .expense-summary-card__alert {
   padding: 12px 14px;
   border-radius: 18px;
-  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
-  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
+  color: var(--color-error);
   font-weight: 600;
 }
 
 .member-editor-card {
-  background: var(--color-surface);
+  background: var(--color-surface-strong);
   border-radius: 28px;
-  border: 1px solid color-mix(in srgb, var(--color-outline) 10%, transparent);
+  border: 1px solid var(--color-border-soft);
   box-shadow: 0 10px 24px rgba(18, 32, 35, 0.06);
 }
 
@@ -1092,7 +1092,7 @@ function shareHelperText(member: EnrichedMemberDraft) {
 }
 
 .text-danger {
-  color: var(--color-danger);
+  color: var(--color-error);
 }
 
 @media (max-width: 640px) {
