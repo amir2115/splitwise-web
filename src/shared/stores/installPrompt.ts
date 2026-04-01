@@ -4,6 +4,10 @@ import { readInstallPromptDismissedAt, writeInstallPromptDismissedAt } from '@/s
 
 const DISMISS_TTL_MS = 1000 * 60 * 60 * 24 * 7
 
+type StandaloneMediaQuery = MediaQueryList & {
+  addListener?: (listener: (event: MediaQueryListEvent) => void) => void
+}
+
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
@@ -22,8 +26,16 @@ export const useInstallPromptStore = defineStore('installPrompt', () => {
   const shouldShowIosHelp = computed(() => isIosSafari.value && !isStandalone.value && !wasDismissedRecently.value && isMobile.value)
   const shouldShowPrompt = computed(() => canPromptInstall.value || shouldShowIosHelp.value)
 
+  function getStandaloneMediaQuery(): StandaloneMediaQuery | null {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return null
+    }
+
+    return window.matchMedia('(display-mode: standalone)') as StandaloneMediaQuery
+  }
+
   function updateStandaloneState() {
-    const standaloneMedia = window.matchMedia('(display-mode: standalone)').matches
+    const standaloneMedia = getStandaloneMediaQuery()?.matches ?? false
     const navigatorStandalone = 'standalone' in window.navigator && Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone)
     isStandalone.value = standaloneMedia || navigatorStandalone
   }
@@ -38,7 +50,15 @@ export const useInstallPromptStore = defineStore('installPrompt', () => {
     isIosSafari.value = /iPhone|iPad|iPod/i.test(userAgent) && isSafari
 
     updateStandaloneState()
-    window.matchMedia('(display-mode: standalone)').addEventListener('change', updateStandaloneState)
+
+    const standaloneMediaQuery = getStandaloneMediaQuery()
+    if (standaloneMediaQuery) {
+      if (typeof standaloneMediaQuery.addEventListener === 'function') {
+        standaloneMediaQuery.addEventListener('change', updateStandaloneState)
+      } else if (typeof standaloneMediaQuery.addListener === 'function') {
+        standaloneMediaQuery.addListener(updateStandaloneState)
+      }
+    }
 
     window.addEventListener('beforeinstallprompt', ((event: Event) => {
       event.preventDefault()

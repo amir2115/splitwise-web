@@ -3,11 +3,13 @@ import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import HeroCard from '@/shared/components/HeroCard.vue'
+import InlineAlert from '@/shared/components/InlineAlert.vue'
 import PageTopBar from '@/shared/components/PageTopBar.vue'
 import SectionHeader from '@/shared/components/SectionHeader.vue'
 import SummaryGrid from '@/shared/components/SummaryGrid.vue'
 import EmptyStateCard from '@/shared/components/EmptyStateCard.vue'
 import AmountText from '@/shared/components/AmountText.vue'
+import TransferFlow from '@/shared/components/TransferFlow.vue'
 import { useGroupsStore } from '@/modules/groups/store'
 import { useMembersStore } from '@/modules/members/store'
 import { useExpensesStore } from '@/modules/expenses/store'
@@ -39,6 +41,7 @@ const group = computed(() => groups.value.find((item) => item.id === groupId))
 const members = computed(() => membersByGroupId.value[groupId] ?? [])
 const expenses = computed(() => expensesByGroupId.value[groupId] ?? [])
 const settlements = computed(() => settlementsByGroupId.value[groupId] ?? [])
+const canCreateTransactions = computed(() => members.value.length >= 2)
 
 const summaryItems = computed(() => {
   const openBalancesMembers = new Set<string>()
@@ -62,8 +65,6 @@ const summaryItems = computed(() => {
 })
 
 const memberName = (memberId: string) => members.value.find((item) => item.id === memberId)?.username ?? `${strings.value.membersLabel} ${memberId}`
-const directionArrow = computed(() => (language.value === 'fa' ? '←' : '→'))
-
 onMounted(async () => {
   try {
     if (groups.value.length === 0) await groupsStore.load()
@@ -88,6 +89,22 @@ async function removeSettlement(id: string) {
     snackbarStore.push(error instanceof Error ? error.message : strings.value.genericError, 'error')
   }
 }
+
+function openExpenseEditor() {
+  if (!canCreateTransactions.value) {
+    snackbarStore.push(strings.value.needSecondMemberMessage, 'info')
+    return
+  }
+  router.push(`/groups/${groupId}/expense/new`)
+}
+
+function openSettlementEditor() {
+  if (!canCreateTransactions.value) {
+    snackbarStore.push(strings.value.needSecondMemberMessage, 'info')
+    return
+  }
+  router.push(`/groups/${groupId}/settlement/new`)
+}
 </script>
 
 <template>
@@ -95,17 +112,22 @@ async function removeSettlement(id: string) {
     <PageTopBar :title="group?.name ?? strings.groupFallbackTitle" can-go-back @back="router.back()" />
     <HeroCard :title="strings.groupOverviewTitle" :subtitle="strings.groupOverviewSubtitle" icon="▣" />
     <SummaryGrid :items="summaryItems" :language="language" />
+    <InlineAlert
+      v-if="!canCreateTransactions"
+      :title="strings.membersAction"
+      :message="strings.needSecondMemberMessage"
+    />
 
     <div class="action-grid stagger-list">
       <button class="action-card" type="button" @click="router.push(`/groups/${groupId}/members`)">
         <span class="action-card__icon">◎</span>
         <span class="action-card__title">{{ strings.membersAction }}</span>
       </button>
-      <button class="action-card" type="button" @click="router.push(`/groups/${groupId}/expense/new`)">
+      <button class="action-card" :class="{ 'is-disabled': !canCreateTransactions }" type="button" @click="openExpenseEditor">
         <span class="action-card__icon">＋</span>
         <span class="action-card__title">{{ strings.newExpenseAction }}</span>
       </button>
-      <button class="action-card" type="button" @click="router.push(`/groups/${groupId}/settlement/new`)">
+      <button class="action-card" :class="{ 'is-disabled': !canCreateTransactions }" type="button" @click="openSettlementEditor">
         <span class="action-card__icon">↺</span>
         <span class="action-card__title">{{ strings.addSettlementAction }}</span>
       </button>
@@ -146,9 +168,12 @@ async function removeSettlement(id: string) {
     <TransitionGroup name="feature-transition" tag="div" class="list-stack">
       <article v-for="settlement in settlements.slice(0, 8)" :key="settlement.id" class="surface-card surface-card--flat">
         <div class="detail-line detail-line--start">
-          <div class="page-topbar__title" style="font-size: 16px;">
-            {{ memberName(settlement.from_member_id) }} {{ directionArrow }} {{ memberName(settlement.to_member_id) }}
-          </div>
+          <TransferFlow
+            class="page-topbar__title"
+            style="font-size: 16px;"
+            :from="memberName(settlement.from_member_id)"
+            :to="memberName(settlement.to_member_id)"
+          />
           <AmountText :amount="settlement.amount" :language="language" tone="success" />
         </div>
         <div class="muted">{{ settlement.note || strings.noDescription }}</div>
@@ -165,3 +190,9 @@ async function removeSettlement(id: string) {
     </TransitionGroup>
   </div>
 </template>
+
+<style scoped>
+.is-disabled {
+  opacity: 0.6;
+}
+</style>

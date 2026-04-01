@@ -34,12 +34,21 @@ export interface AppStrings {
   passwordLabel: string
   loginAction: string
   registerAction: string
+  continueOfflineAction: string
   goToRegister: string
   goToLogin: string
   signOut: string
+  signInLabel: string
+  logoutLabel: string
   addGroup: string
   newGroupTitle: string
   editGroupTitle: string
+  groupActionsTitle: string
+  groupActionsSubtitle: string
+  leaveGroup: string
+  deleteGroupForEveryone: string
+  groupDeleteConfirmMessage: string
+  groupLeaveMessage: string
   groupPlaceholder: string
   createGroup: string
   save: string
@@ -47,6 +56,9 @@ export interface AppStrings {
   cancel: string
   noGroupsTitle: string
   noGroupsSubtitle: string
+  searchGroupsLabel: string
+  noSearchResultsTitle: string
+  noSearchResultsSubtitle: string
   homeHeroTitle: string
   homeHeroSubtitle: string
   groupFallbackTitle: string
@@ -56,6 +68,7 @@ export interface AppStrings {
   membersLabel: string
   settlementsLabel: string
   openBalancesLabel: string
+  needSecondMemberMessage: string
   membersAction: string
   newExpenseAction: string
   addSettlementAction: string
@@ -138,6 +151,17 @@ export interface AppStrings {
   accountTitle: string
   accountGuestSubtitle: string
   accountSignedInAs: string
+  syncTitle: string
+  syncSubtitle: string
+  syncOnline: string
+  syncOffline: string
+  syncNow: string
+  syncInProgress: string
+  syncLoginRequired: string
+  syncConnectionIssue: string
+  syncServerIssue: string
+  notSyncedYet: string
+  lastSyncLabel: string
   installAppTitle: string
   installAppBody: string
   installAppAction: string
@@ -162,13 +186,20 @@ export interface AppStrings {
   downloadReleaseDateLabel: string
   downloadFileSizeLabel: string
   languageTitle: string
+  languageSubtitle: string
   themeTitle: string
+  themeSubtitle: string
   persianLabel: string
   englishLabel: string
   lightLabel: string
   darkLabel: string
   loading: string
   retry: string
+  updateAvailableTitle: string
+  updateRequiredTitle: string
+  updateDefaultMessage: string
+  updateNow: string
+  updateLater: string
   confirmDelete: string
   genericError: string
 }
@@ -199,12 +230,21 @@ const fa: AppStrings = {
   passwordLabel: 'رمز عبور',
   loginAction: 'ورود',
   registerAction: 'ساخت حساب',
+  continueOfflineAction: 'فعلاً آفلاین ادامه می‌دهم',
   goToRegister: 'حساب نداری؟ ثبت‌نام کن',
   goToLogin: 'حساب داری؟ وارد شو',
   signOut: 'خروج',
+  signInLabel: 'ورود',
+  logoutLabel: 'خروج از حساب',
   addGroup: 'افزودن گروه',
   newGroupTitle: 'گروه جدید',
   editGroupTitle: 'ویرایش گروه',
+  groupActionsTitle: 'کارهای گروه',
+  groupActionsSubtitle: 'یکی از این دو کار را انتخاب کن.',
+  leaveGroup: 'ترک گروه',
+  deleteGroupForEveryone: 'حذف برای همه',
+  groupDeleteConfirmMessage: 'گروه برای همه پاک می‌شود.',
+  groupLeaveMessage: 'فقط تو از گروه خارج می‌شوی.',
   groupPlaceholder: 'مثلا سفر شمال',
   createGroup: 'ساخت گروه',
   save: 'ذخیره',
@@ -212,6 +252,9 @@ const fa: AppStrings = {
   cancel: 'انصراف',
   noGroupsTitle: 'هنوز گروهی نداری',
   noGroupsSubtitle: 'از دکمه بالا یک گروه جدید بساز.',
+  searchGroupsLabel: 'جست‌وجوی گروه‌ها',
+  noSearchResultsTitle: 'گروهی پیدا نشد',
+  noSearchResultsSubtitle: 'عبارت جست‌وجو را عوض کن یا گروه جدید بساز.',
   homeHeroTitle: 'خرج‌ها را آفلاین جمع کن',
   homeHeroSubtitle: 'برای هر سفر یا جمع، گروه بساز، اعضا را اضافه کن و بدهی‌ها را با حالت simplify ببین.',
   groupFallbackTitle: 'گروه',
@@ -221,6 +264,7 @@ const fa: AppStrings = {
   membersLabel: 'اعضا',
   settlementsLabel: 'تسویه‌ها',
   openBalancesLabel: 'مانده باز',
+  needSecondMemberMessage: 'برای ثبت خرج یا تسویه حداقل دو عضو لازم است.',
   membersAction: 'اعضا',
   newExpenseAction: 'خرج جدید',
   addSettlementAction: 'ثبت تسویه',
@@ -303,6 +347,17 @@ const fa: AppStrings = {
   accountTitle: 'حساب',
   accountGuestSubtitle: 'برای همگام‌سازی وارد حساب خودت شو.',
   accountSignedInAs: 'وارد شده با',
+  syncTitle: 'همگام‌سازی',
+  syncSubtitle: 'وضعیت اتصال و به‌روزرسانی اپ را از اینجا بررسی کن.',
+  syncOnline: 'آنلاین',
+  syncOffline: 'آفلاین',
+  syncNow: 'بررسی دوباره',
+  syncInProgress: 'در حال بررسی...',
+  syncLoginRequired: 'برای همگام‌سازی اول وارد حساب شو.',
+  syncConnectionIssue: 'اتصال اینترنت یا دسترسی به سرور برقرار نیست.',
+  syncServerIssue: 'سرور پاسخ سالم نداد. کمی بعد دوباره تلاش کن.',
+  notSyncedYet: 'هنوز بررسی‌ای ثبت نشده',
+  lastSyncLabel: 'آخرین بررسی: {date}',
   installAppTitle: 'نصب اپ',
   installAppBody: 'برای دسترسی سریع‌تر و تجربه شبیه اپ، این وب‌اپ را به صفحه اصلی اضافه کن.',
   installAppAction: 'نصب اپ',
@@ -327,13 +382,20 @@ const fa: AppStrings = {
   downloadReleaseDateLabel: 'تاریخ انتشار',
   downloadFileSizeLabel: 'حجم فایل',
   languageTitle: 'زبان',
+  languageSubtitle: 'زبان نمایش رابط را انتخاب کن.',
   themeTitle: 'تم',
+  themeSubtitle: 'بین ظاهر روشن و تیره جابه‌جا شو.',
   persianLabel: 'فارسی',
   englishLabel: 'English',
   lightLabel: 'روشن',
   darkLabel: 'تیره',
   loading: 'در حال بارگذاری...',
   retry: 'تلاش دوباره',
+  updateAvailableTitle: 'نسخه جدید آماده است',
+  updateRequiredTitle: 'برای ادامه باید به‌روزرسانی کنی',
+  updateDefaultMessage: 'نسخه تازه اپ منتشر شده است. برای تجربه بهتر به صفحه دانلود برو.',
+  updateNow: 'به‌روزرسانی',
+  updateLater: 'بعداً',
   confirmDelete: 'از حذف مطمئنی؟',
   genericError: 'عملیات انجام نشد.',
 }
@@ -364,12 +426,21 @@ const en: AppStrings = {
   passwordLabel: 'Password',
   loginAction: 'Login',
   registerAction: 'Create account',
+  continueOfflineAction: 'Continue offline for now',
   goToRegister: 'No account? Register',
   goToLogin: 'Already have an account? Login',
   signOut: 'Sign out',
+  signInLabel: 'Sign in',
+  logoutLabel: 'Log out',
   addGroup: 'Add group',
   newGroupTitle: 'New group',
   editGroupTitle: 'Edit group',
+  groupActionsTitle: 'Group actions',
+  groupActionsSubtitle: 'Choose one action.',
+  leaveGroup: 'Leave group',
+  deleteGroupForEveryone: 'Delete for everyone',
+  groupDeleteConfirmMessage: 'The group will be removed for everyone.',
+  groupLeaveMessage: 'Only you will leave the group.',
   groupPlaceholder: 'For example, Summer trip',
   createGroup: 'Create group',
   save: 'Save',
@@ -377,6 +448,9 @@ const en: AppStrings = {
   cancel: 'Cancel',
   noGroupsTitle: 'You have no groups yet',
   noGroupsSubtitle: 'Create a new group from the top action.',
+  searchGroupsLabel: 'Search groups',
+  noSearchResultsTitle: 'No matching groups',
+  noSearchResultsSubtitle: 'Try a different search or create a new group.',
   homeHeroTitle: 'Track shared costs cleanly',
   homeHeroSubtitle: 'Create a group for each trip or event, add members, and check simplified debts.',
   groupFallbackTitle: 'Group',
@@ -386,6 +460,7 @@ const en: AppStrings = {
   membersLabel: 'Members',
   settlementsLabel: 'Settlements',
   openBalancesLabel: 'Open balances',
+  needSecondMemberMessage: 'You need at least two members before adding expenses or settlements.',
   membersAction: 'Members',
   newExpenseAction: 'New expense',
   addSettlementAction: 'Add settlement',
@@ -468,6 +543,17 @@ const en: AppStrings = {
   accountTitle: 'Account',
   accountGuestSubtitle: 'Sign in to keep your data in sync.',
   accountSignedInAs: 'Signed in as',
+  syncTitle: 'Sync',
+  syncSubtitle: 'Review connection and update status here.',
+  syncOnline: 'Online',
+  syncOffline: 'Offline',
+  syncNow: 'Check again',
+  syncInProgress: 'Checking...',
+  syncLoginRequired: 'Sign in first to sync your account.',
+  syncConnectionIssue: 'Internet or API connectivity is unavailable right now.',
+  syncServerIssue: 'The server did not return a healthy response.',
+  notSyncedYet: 'No check has been recorded yet',
+  lastSyncLabel: 'Last check: {date}',
   installAppTitle: 'Install app',
   installAppBody: 'Add this web app to your home screen for faster access and an app-like experience.',
   installAppAction: 'Install',
@@ -492,13 +578,20 @@ const en: AppStrings = {
   downloadReleaseDateLabel: 'Release date',
   downloadFileSizeLabel: 'File size',
   languageTitle: 'Language',
+  languageSubtitle: 'Choose the interface language.',
   themeTitle: 'Theme',
+  themeSubtitle: 'Switch between light and dark appearance.',
   persianLabel: 'فارسی',
   englishLabel: 'English',
   lightLabel: 'Light',
   darkLabel: 'Dark',
   loading: 'Loading...',
   retry: 'Retry',
+  updateAvailableTitle: 'An update is available',
+  updateRequiredTitle: 'Update required',
+  updateDefaultMessage: 'A newer version of the app is available. Open the download page to update.',
+  updateNow: 'Update now',
+  updateLater: 'Later',
   confirmDelete: 'Are you sure you want to delete this item?',
   genericError: 'The operation failed.',
 }

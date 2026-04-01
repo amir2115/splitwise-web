@@ -17,6 +17,12 @@ export function parseAmountInput(input: string) {
   return value ? Number.parseInt(value, 10) : 0
 }
 
+export function formatAmountInput(input: string, language: AppLanguage) {
+  const value = digitsOnly(input)
+  if (!value) return ''
+  return formatAmount(Number.parseInt(value, 10), language)
+}
+
 export function formatAmount(amount: number, language: AppLanguage) {
   const locale = language === 'fa' ? 'fa-IR' : 'en-US'
   return new Intl.NumberFormat(locale).format(amount)

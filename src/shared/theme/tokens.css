@@ -22,8 +22,28 @@
   font-weight: 800;
 }
 
+@font-face {
+  font-family: 'GoogleSans';
+  src: url('../../assets/fonts/google_sans_regular.ttf') format('truetype');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'GoogleSans';
+  src: url('../../assets/fonts/google_sans_medium.ttf') format('truetype');
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: 'GoogleSans';
+  src: url('../../assets/fonts/google_sans_bold.ttf') format('truetype');
+  font-weight: 700;
+}
+
 :root {
-  --font-app: 'IranYekan', sans-serif;
+  --font-app-fa: 'IranYekan', sans-serif;
+  --font-app-en: 'GoogleSans', sans-serif;
+  --font-app: var(--font-app-fa);
   --color-primary: #0f766e;
   --color-on-primary: #ffffff;
   --color-secondary: #1d4ed8;
@@ -84,6 +104,14 @@ html,
 body,
 #app {
   min-height: 100%;
+}
+
+html[lang='en'] {
+  --font-app: var(--font-app-en);
+}
+
+html[lang='fa'] {
+  --font-app: var(--font-app-fa);
 }
 
 body {

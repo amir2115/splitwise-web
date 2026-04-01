@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/shared/stores/auth'
-import LoginPage from '@/modules/auth/pages/LoginPage.vue'
-import RegisterPage from '@/modules/auth/pages/RegisterPage.vue'
+import AuthPage from '@/modules/auth/pages/AuthPage.vue'
 import GroupsPage from '@/modules/groups/pages/GroupsPage.vue'
 import GroupDashboardPage from '@/modules/groups/pages/GroupDashboardPage.vue'
 import MembersPage from '@/modules/members/pages/MembersPage.vue'
@@ -16,9 +15,10 @@ export const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', redirect: '/groups' },
-    { path: '/auth/login', component: LoginPage, meta: { guestOnly: true } },
-    { path: '/auth/register', component: RegisterPage, meta: { guestOnly: true } },
-    { path: '/groups', component: GroupsPage, meta: { requiresAuth: true, topLevel: true } },
+    { path: '/auth', redirect: '/auth/login' },
+    { path: '/auth/login', component: AuthPage, meta: { guestOnly: true, authMode: 'login' } },
+    { path: '/auth/register', component: AuthPage, meta: { guestOnly: true, authMode: 'register' } },
+    { path: '/groups', component: GroupsPage, meta: { requiresAuth: true, topLevel: true, allowGuest: true } },
     { path: '/groups/:groupId', component: GroupDashboardPage, meta: { requiresAuth: true } },
     { path: '/groups/:groupId/members', component: MembersPage, meta: { requiresAuth: true } },
     { path: '/groups/:groupId/expense/new', component: ExpenseEditorPage, meta: { requiresAuth: true } },
@@ -27,7 +27,7 @@ export const router = createRouter({
     { path: '/groups/:groupId/settlement/new', component: SettlementEditorPage, meta: { requiresAuth: true } },
     { path: '/groups/:groupId/settlement/:settlementId/edit', component: SettlementEditorPage, meta: { requiresAuth: true } },
     { path: '/groups/:groupId/balances', component: BalancesPage, meta: { requiresAuth: true } },
-    { path: '/settings', component: SettingsPage, meta: { requiresAuth: true, topLevel: true } },
+    { path: '/settings', component: SettingsPage, meta: { requiresAuth: true, topLevel: true, allowGuest: true } },
     { path: '/download-app', component: AppDownloadPage },
   ],
 })
@@ -38,11 +38,11 @@ router.beforeEach(async (to) => {
     await authStore.bootstrap()
   }
 
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+  if (to.meta.requiresAuth && !authStore.isAuthenticated && !(authStore.isGuestMode && to.meta.allowGuest)) {
     return '/auth/login'
   }
 
-  if (to.meta.guestOnly && authStore.isAuthenticated) {
+  if (to.meta.guestOnly && authStore.hasActiveSession) {
     return '/groups'
   }
 

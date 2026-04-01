@@ -6,12 +6,15 @@ import { useAuthStore } from '@/shared/stores/auth'
 export const useGroupsStore = defineStore('groups', () => {
   const groups = ref<Group[]>([])
   const isLoading = ref(false)
+  const hasLoaded = ref(false)
 
-  async function load() {
+  async function load(force = false) {
     const authStore = useAuthStore()
+    if ((isLoading.value || hasLoaded.value) && !force) return
     isLoading.value = true
     try {
       groups.value = await authStore.api.get<Group[]>('/groups')
+      hasLoaded.value = true
     } finally {
       isLoading.value = false
     }
@@ -37,5 +40,5 @@ export const useGroupsStore = defineStore('groups', () => {
     groups.value = groups.value.filter((item) => item.id !== groupId)
   }
 
-  return { groups, isLoading, load, create, update, remove }
+  return { groups, isLoading, hasLoaded, load, create, update, remove }
 })

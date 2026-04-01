@@ -4,6 +4,7 @@ const KEYS = {
   accessToken: 'offline-splitwise.accessToken',
   refreshToken: 'offline-splitwise.refreshToken',
   user: 'offline-splitwise.user',
+  guestMode: 'offline-splitwise.guestMode',
   language: 'offline-splitwise.language',
   themeMode: 'offline-splitwise.themeMode',
   installPromptDismissedAt: 'offline-splitwise.installPromptDismissedAt',
@@ -54,6 +55,18 @@ export function writeStoredUser(user: User | null) {
   }
 }
 
+export function readGuestMode() {
+  return safeStorage().getItem(KEYS.guestMode) === '1'
+}
+
+export function writeGuestMode(value: boolean) {
+  if (value) {
+    safeStorage().setItem(KEYS.guestMode, '1')
+  } else {
+    safeStorage().removeItem(KEYS.guestMode)
+  }
+}
+
 export function readLanguage(): AppLanguage {
   const value = safeStorage().getItem(KEYS.language)
   return value === 'en' ? 'en' : 'fa'
@@ -76,6 +89,7 @@ export function clearAuthStorage() {
   writeAccessToken(null)
   writeRefreshToken(null)
   writeStoredUser(null)
+  writeGuestMode(false)
 }
 
 export function readInstallPromptDismissedAt() {

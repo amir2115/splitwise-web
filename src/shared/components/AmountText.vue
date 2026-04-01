@@ -17,9 +17,14 @@ const parts = computed(() => formatAmountParts(props.amount, props.language))
 </script>
 
 <template>
-  <span class="amount-text" :class="[`amount-text--${tone}`, `amount-text--${size}`]">
-    <span class="amount-text__value">{{ parts.value }}</span>
-    <span class="amount-text__currency">{{ parts.currency }}</span>
+  <span class="amount-text" :class="[`amount-text--${tone}`, `amount-text--${size}`, `amount-text--${language}`]">
+    <template v-if="language === 'fa'">
+      <span class="amount-text__currency">{{ parts.currency }}</span>
+      <span class="amount-text__value">{{ parts.value }}</span>
+    </template>
+    <template v-else>
+      <span class="amount-text__value">{{ parts.value }}</span>
+      <span class="amount-text__currency">{{ parts.currency }}</span>
+    </template>
   </span>
 </template>
-

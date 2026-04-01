@@ -252,6 +252,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  align-items: center;
 }
 
 .chip,
@@ -454,6 +455,10 @@ button:focus-visible,
   flex-wrap: wrap;
 }
 
+.amount-text--fa {
+  direction: ltr;
+}
+
 .amount-text__value {
   font-weight: 700;
 }
@@ -637,8 +642,8 @@ button:focus-visible,
 }
 
 .setting-option {
-  min-height: 36px;
-  padding: 0 14px;
+  min-height: 44px;
+  padding: 0 18px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
@@ -646,6 +651,7 @@ button:focus-visible,
   background: transparent;
   color: var(--color-on-surface);
   border: 1px solid var(--color-outline);
+  font-weight: 600;
 }
 
 .switch-field {
@@ -713,7 +719,7 @@ button:focus-visible,
 }
 
 .settings-section-title {
-  margin: 0 0 14px;
+  margin: 0;
   font-size: 20px;
   line-height: 30px;
   font-weight: 600;
@@ -780,6 +786,8 @@ button:focus-visible,
 .settlement-option-card {
   min-height: 88px;
   justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .settlement-option-card .muted {
@@ -822,19 +830,6 @@ button:focus-visible,
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-}
-
-.modal-topbar {
-  grid-template-columns: 40px minmax(0, 1fr) 40px;
-  margin: -18px -18px 0;
-  border-radius: 28px 28px 0 0;
-}
-
-.modal-topbar__title {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
-  line-height: 1.5;
 }
 
 .modal-actions > * {
@@ -915,6 +910,46 @@ button:focus-visible,
 
 .modal-card {
   width: min(100%, 420px);
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  border-radius: 28px;
+  border: 1px solid color-mix(in srgb, var(--color-outline) 12%, transparent);
+  box-shadow: 0 10px 26px rgba(18, 32, 35, 0.12);
+  overflow: hidden;
+  padding: 0;
+}
+
+.modal-card__header {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 10px;
+  padding: 18px;
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  background: color-mix(in srgb, var(--color-background) 92%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-outline) 8%, transparent);
+}
+
+.modal-card__title {
+  font-size: 20px;
+  line-height: 1.5;
+  font-weight: 700;
+  text-align: center;
+  white-space: normal;
+}
+
+.modal-card__close,
+.modal-card__spacer {
+  width: 48px;
+  height: 48px;
+}
+
+.modal-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
 }
 
 .snackbar-stack {

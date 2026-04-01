@@ -10,15 +10,13 @@ const emit = defineEmits<{
 
 <template>
   <div class="modal-backdrop" @click.self="emit('close')">
-    <div class="modal-card surface-card">
-      <div class="page-stack" style="gap: 14px;">
-        <div class="page-topbar modal-topbar" style="margin-bottom: 0;">
-          <div class="page-topbar__leading"></div>
-          <strong class="page-topbar__title modal-topbar__title">{{ title }}</strong>
-          <div class="page-topbar__actions">
-            <button class="icon-button" type="button" @click="emit('close')">✕</button>
-          </div>
-        </div>
+    <div class="modal-card">
+      <div class="modal-card__header">
+        <button class="icon-button modal-card__close" type="button" @click="emit('close')">✕</button>
+        <strong class="modal-card__title">{{ title }}</strong>
+        <div class="modal-card__spacer" aria-hidden="true"></div>
+      </div>
+      <div class="modal-card__body">
         <slot />
       </div>
     </div>

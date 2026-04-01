@@ -6,12 +6,13 @@ import HeroCard from '@/shared/components/HeroCard.vue'
 import PageTopBar from '@/shared/components/PageTopBar.vue'
 import InlineAlert from '@/shared/components/InlineAlert.vue'
 import AmountText from '@/shared/components/AmountText.vue'
+import TransferFlow from '@/shared/components/TransferFlow.vue'
 import { useMembersStore } from '@/modules/members/store'
 import { useSettlementsStore } from '@/modules/settlements/store'
 import { useBalancesStore } from '@/modules/balances/store'
 import { useSettingsStore } from '@/shared/stores/settings'
 import { useSnackbarStore } from '@/shared/stores/snackbar'
-import { digitsOnly, parseAmountInput, isAmountOverflow } from '@/shared/utils/format'
+import { digitsOnly, formatAmountInput, parseAmountInput, isAmountOverflow } from '@/shared/utils/format'
 import { translateMessageKey } from '@/shared/i18n/strings'
 
 const route = useRoute()
@@ -68,7 +69,6 @@ const suggestedAmount = computed(() => {
   }
   return balanceResponse.value?.simplified_debts.find((item) => item.from_member_id === form.from_member_id && item.to_member_id === form.to_member_id)?.amount ?? 0
 })
-const directionArrow = computed(() => (language.value === 'fa' ? '←' : '→'))
 
 function selectPayer(memberId: string) {
   form.from_member_id = memberId
@@ -159,15 +159,14 @@ async function removeSettlement() {
         <div class="surface-card surface-card--flat" style="padding: 18px;">
           <div class="page-stack" style="gap: 16px;">
             <div v-if="form.from_member_id && form.to_member_id" class="settlement-summary-card">
-              <div class="settlement-summary-card__side">
-                <strong>@{{ members.find((item) => item.id === form.from_member_id)?.username }}</strong>
-                <span class="muted">{{ strings.payerLabel }}</span>
-              </div>
-              <span class="suggested-arrow">{{ directionArrow }}</span>
-              <div class="settlement-summary-card__side settlement-summary-card__side--end">
-                <strong>@{{ members.find((item) => item.id === form.to_member_id)?.username }}</strong>
-                <span class="muted">{{ strings.receiverLabel }}</span>
-              </div>
+              <TransferFlow
+                :from="members.find((item) => item.id === form.from_member_id)?.username ?? ''"
+                :to="members.find((item) => item.id === form.to_member_id)?.username ?? ''"
+                :from-caption="strings.payerLabel"
+                :to-caption="strings.receiverLabel"
+                prefix-at
+                stacked
+              />
             </div>
             <div class="settlement-picker">
               <strong class="settlement-picker__title">{{ strings.payerLabel }}</strong>
@@ -206,10 +205,13 @@ async function removeSettlement() {
         <Transition name="feature-transition">
           <div v-if="suggestedAmount > 0" class="suggestion-panel page-stack" style="gap: 10px;">
             <strong>{{ strings.suggestedAmountCardTitle }}</strong>
-            <span class="muted">
-              @{{ members.find((item) => item.id === form.from_member_id)?.username }} {{ directionArrow }} @{{ members.find((item) => item.id === form.to_member_id)?.username }}
-            </span>
-            <div class="detail-line detail-line--start">
+            <TransferFlow
+              class="settlement-flow-line muted"
+              :from="members.find((item) => item.id === form.from_member_id)?.username ?? ''"
+              :to="members.find((item) => item.id === form.to_member_id)?.username ?? ''"
+              prefix-at
+            />
+            <div class="settlement-suggestion-footer">
               <AmountText :amount="suggestedAmount" :language="language" tone="primary" size="lg" />
               <button class="outline-button" type="button" @click="fillSuggestedAmount">
                 {{ strings.fillSuggestedAmountAction }}
@@ -218,9 +220,9 @@ async function removeSettlement() {
           </div>
         </Transition>
         <div class="form-field">
-          <label class="form-field__label">{{ strings.settlementAmountLabel }}</label>
+          <label class="form-field__label">{{ `${strings.settlementAmountLabel} ${language === 'fa' ? '(تومان)' : '(Toman)'}` }}</label>
           <input
-            :value="form.amountInput"
+            :value="formatAmountInput(form.amountInput, language)"
             class="text-input"
             inputmode="numeric"
             @input="form.amountInput = digitsOnly(($event.target as HTMLInputElement).value)"
@@ -238,3 +240,20 @@ async function removeSettlement() {
     </div>
   </div>
 </template>
+
+<style scoped>
+.settlement-summary-card {
+  width: 100%;
+}
+
+.settlement-flow-line {
+  width: 100%;
+}
+
+.settlement-suggestion-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+</style>

@@ -6,12 +6,15 @@ import { useAuthStore } from '@/shared/stores/auth'
 export const useGroupInvitesStore = defineStore('groupInvites', () => {
   const invites = ref<GroupInvite[]>([])
   const isLoading = ref(false)
+  const hasLoaded = ref(false)
 
-  async function load(status = 'pending') {
+  async function load(status = 'pending', force = false) {
     const authStore = useAuthStore()
+    if ((isLoading.value || hasLoaded.value) && !force) return
     isLoading.value = true
     try {
       invites.value = await authStore.api.get<GroupInvite[]>(`/group-invites?status=${status}`)
+      hasLoaded.value = true
     } finally {
       isLoading.value = false
     }
@@ -31,5 +34,5 @@ export const useGroupInvitesStore = defineStore('groupInvites', () => {
     return invite
   }
 
-  return { invites, isLoading, load, accept, reject }
+  return { invites, isLoading, hasLoaded, load, accept, reject }
 })

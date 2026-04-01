@@ -5,17 +5,20 @@ import { storeToRefs } from 'pinia'
 import AppSnackbar from '@/shared/components/AppSnackbar.vue'
 import InstallPromptBanner from '@/shared/components/InstallPromptBanner.vue'
 import { useInstallPromptStore } from '@/shared/stores/installPrompt'
+import { useAppShellStore } from '@/shared/stores/appShell'
 import { useSettingsStore } from '@/shared/stores/settings'
 
 const route = useRoute()
 const settingsStore = useSettingsStore()
 const installPromptStore = useInstallPromptStore()
+const appShellStore = useAppShellStore()
 const { strings } = storeToRefs(settingsStore)
 
 const showBottomNav = computed(() => route.path === '/groups' || route.path === '/settings')
 
 onMounted(() => {
   installPromptStore.initialize()
+  appShellStore.initialize()
 })
 </script>
 

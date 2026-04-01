@@ -23,6 +23,26 @@ export interface AuthResponse {
   tokens: TokenPair
 }
 
+export interface HealthResponse {
+  status: string
+  min_supported_version_code: number | null
+  latest_version_code: number | null
+  update_mode: string | null
+  store_url: string | null
+  update_title: string | null
+  update_message: string | null
+}
+
+export type AppUpdateMode = 'NONE' | 'SOFT' | 'HARD'
+
+export interface AppUpdateState {
+  mode: AppUpdateMode
+  storeUrl: string | null
+  title: string | null
+  message: string | null
+  isVisible: boolean
+}
+
 export interface Group {
   id: string
   name: string
