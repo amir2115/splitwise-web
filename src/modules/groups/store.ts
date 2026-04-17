@@ -8,6 +8,12 @@ export const useGroupsStore = defineStore('groups', () => {
   const isLoading = ref(false)
   const hasLoaded = ref(false)
 
+  function reset() {
+    groups.value = []
+    isLoading.value = false
+    hasLoaded.value = false
+  }
+
   async function load(force = false) {
     const authStore = useAuthStore()
     if ((isLoading.value || hasLoaded.value) && !force) return
@@ -40,5 +46,5 @@ export const useGroupsStore = defineStore('groups', () => {
     groups.value = groups.value.filter((item) => item.id !== groupId)
   }
 
-  return { groups, isLoading, hasLoaded, load, create, update, remove }
+  return { groups, isLoading, hasLoaded, load, create, update, remove, reset }
 })

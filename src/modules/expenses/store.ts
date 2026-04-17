@@ -7,6 +7,11 @@ export const useExpensesStore = defineStore('expenses', () => {
   const byGroupId = ref<Record<string, Expense[]>>({})
   const isLoading = ref(false)
 
+  function reset() {
+    byGroupId.value = {}
+    isLoading.value = false
+  }
+
   async function load(groupId: string) {
     const authStore = useAuthStore()
     isLoading.value = true
@@ -47,5 +52,5 @@ export const useExpensesStore = defineStore('expenses', () => {
     byGroupId.value[expense.group_id] = (byGroupId.value[expense.group_id] ?? []).filter((item) => item.id !== expense.id)
   }
 
-  return { byGroupId, isLoading, load, save, remove }
+  return { byGroupId, isLoading, load, save, remove, reset }
 })

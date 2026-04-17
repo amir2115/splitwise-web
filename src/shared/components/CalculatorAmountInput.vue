@@ -2,7 +2,12 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useSettingsStore } from '@/shared/stores/settings'
 import { digitsOnly, formatAmountInput } from '@/shared/utils/format'
-import { evaluateCalculatorExpression, formatCalculatorDisplayValue, normalizeExpression } from '@/shared/utils/calculator'
+import {
+  evaluateCalculatorExpression,
+  formatCalculatorDisplayValue,
+  formatCalculatorExpressionInput,
+  normalizeExpression,
+} from '@/shared/utils/calculator'
 
 const props = withDefaults(
   defineProps<{
@@ -30,6 +35,7 @@ const inputRef = ref<HTMLInputElement | null>(null)
 const isFa = computed(() => settingsStore.language === 'fa')
 const inputMode = computed(() => (props.mode === 'percent' ? 'decimal' : 'numeric'))
 const formattedValue = computed(() => formatAmountInput(props.modelValue, settingsStore.language))
+const formattedExpression = computed(() => formatCalculatorExpressionInput(expression.value))
 const displayValue = computed(() => {
   const formatted = formatCalculatorDisplayValue(expression.value)
   if (formatted !== null && formatted !== undefined) return formatted
@@ -56,6 +62,22 @@ function selectionIndexForDigitCount(value: string, digitCount: number) {
     if (/\d|[۰-۹]|[٠-٩]/.test(value[index] ?? '')) {
       seen += 1
       if (seen >= digitCount) return index + 1
+    }
+  }
+  return value.length
+}
+
+function countExpressionChars(value: string) {
+  return normalizeExpression(value).length
+}
+
+function selectionIndexForExpressionCharCount(value: string, charCount: number) {
+  if (charCount <= 0) return 0
+  let seen = 0
+  for (let index = 0; index < value.length; index += 1) {
+    if (/[0-9+\-*/()]/.test(value[index] ?? '')) {
+      seen += 1
+      if (seen >= charCount) return index + 1
     }
   }
   return value.length
@@ -102,6 +124,20 @@ function handleToken(token: string) {
     return
   }
   expression.value = normalizeExpression(`${expression.value}${token}`)
+}
+
+function updateExpressionInput(event: Event) {
+  const element = event.target as HTMLInputElement
+  const rawValue = element.value
+  const expressionCharsBeforeCaret = countExpressionChars(rawValue.slice(0, element.selectionStart ?? rawValue.length))
+
+  expression.value = normalizeExpression(rawValue)
+  errorMessage.value = ''
+
+  nextTick(() => {
+    const nextCaret = selectionIndexForExpressionCharCount(formattedExpression.value, expressionCharsBeforeCaret)
+    element.setSelectionRange(nextCaret, nextCaret)
+  })
 }
 
 function applyExpression() {
@@ -192,10 +228,10 @@ const calculatorRows = [
             <div class="form-field">
               <label class="form-field__label">{{ isFa ? 'عبارت' : 'Expression' }}</label>
               <input
-                :value="expression"
+                :value="formattedExpression"
                 class="text-input calculator-expression-input"
                 dir="ltr"
-                @input="expression = normalizeExpression(($event.target as HTMLInputElement).value); errorMessage = ''"
+                @input="updateExpressionInput"
               />
             </div>
 

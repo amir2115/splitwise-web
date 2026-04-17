@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { ApiClient } from '@/shared/api/client'
-import type { AuthResponse, TokenPair, User } from '@/shared/api/types'
+import type { AuthResponse, ChangePasswordRequest, TokenPair, User, UserCreateByInviterRequest } from '@/shared/api/types'
 import {
   clearAuthStorage,
   readAccessToken,
@@ -13,6 +13,7 @@ import {
   writeRefreshToken,
   writeStoredUser,
 } from '@/shared/utils/storage'
+import { resetSessionData } from '@/shared/stores/sessionData'
 
 export const useAuthStore = defineStore('auth', () => {
   const accessToken = ref<string | null>(readAccessToken())
@@ -24,6 +25,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => Boolean(accessToken.value && refreshToken.value && user.value))
   const hasActiveSession = computed(() => isAuthenticated.value || isGuestMode.value)
+  const requiresPasswordChange = computed(() => Boolean(user.value?.must_change_password))
 
   function setTokens(tokens: Pick<TokenPair, 'access_token' | 'refresh_token'>) {
     accessToken.value = tokens.access_token
@@ -38,6 +40,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function clearSession() {
+    resetSessionData()
     accessToken.value = null
     refreshToken.value = null
     isGuestMode.value = false
@@ -46,6 +49,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function continueOffline() {
+    resetSessionData()
     accessToken.value = null
     refreshToken.value = null
     setUser(null)
@@ -97,6 +101,7 @@ export const useAuthStore = defineStore('auth', () => {
     isSubmitting.value = true
     try {
       const response = await api.post<AuthResponse>('/auth/login', payload)
+      resetSessionData()
       stopGuestMode()
       setTokens(response.tokens)
       setUser(response.user)
@@ -110,6 +115,7 @@ export const useAuthStore = defineStore('auth', () => {
     isSubmitting.value = true
     try {
       const response = await api.post<AuthResponse>('/auth/register', payload)
+      resetSessionData()
       stopGuestMode()
       setTokens(response.tokens)
       setUser(response.user)
@@ -125,6 +131,21 @@ export const useAuthStore = defineStore('auth', () => {
     return me
   }
 
+  async function createUserByInviter(payload: UserCreateByInviterRequest) {
+    return api.post<User>('/auth/users', payload)
+  }
+
+  async function changePassword(payload: ChangePasswordRequest) {
+    isSubmitting.value = true
+    try {
+      const updatedUser = await api.post<User>('/auth/change-password', payload)
+      setUser(updatedUser)
+      return updatedUser
+    } finally {
+      isSubmitting.value = false
+    }
+  }
+
   return {
     api,
     accessToken,
@@ -135,10 +156,13 @@ export const useAuthStore = defineStore('auth', () => {
     isGuestMode,
     isAuthenticated,
     hasActiveSession,
+    requiresPasswordChange,
     bootstrap,
     login,
     register,
     fetchMe,
+    createUserByInviter,
+    changePassword,
     clearSession,
     continueOffline,
     stopGuestMode,

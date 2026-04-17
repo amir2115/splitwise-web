@@ -23,6 +23,17 @@ export interface AppStrings {
   nameRequired: string
   usernameRequired: string
   passwordRequired: string
+  passwordTooShort: string
+  currentPasswordLabel: string
+  currentPasswordRequired: string
+  currentPasswordInvalid: string
+  newPasswordLabel: string
+  changePasswordTitle: string
+  changePasswordSubtitle: string
+  changePasswordAction: string
+  changePasswordLoading: string
+  changePasswordFailed: string
+  pendingInviteAcceptanceRequired: string
   amountTooLarge: string
   invalidCredentials: string
   usernameTaken: string
@@ -79,6 +90,18 @@ export interface AppStrings {
   noExpensesSubtitle: string
   noSettlementsTitle: string
   noSettlementsSubtitle: string
+  groupCardsTitle: string
+  groupCardsSubtitle: string
+  addGroupCard: string
+  editGroupCard: string
+  noGroupCardsTitle: string
+  noGroupCardsSubtitle: string
+  cardOwnerLabel: string
+  cardNumberLabel: string
+  copyCardNumber: string
+  cardCopied: string
+  saveGroupCard: string
+  saveGroupCardChanges: string
   membersOfGroupPrefix: string
   invitesTitle: string
   noInvitesTitle: string
@@ -89,6 +112,19 @@ export interface AppStrings {
   addMember: string
   editMember: string
   memberPlaceholder: string
+  memberSuggestionHint: string
+  memberSuggestionLoading: string
+  memberSuggestionEmpty: string
+  memberSuggestionError: string
+  memberCreatePromptTitle: string
+  memberCreatePromptSubtitle: string
+  memberCreateNameLabel: string
+  memberCreateUsernameLabel: string
+  memberCreatePasswordLabel: string
+  memberCreateDefaultPassword: string
+  memberCreateAction: string
+  memberCreateFailed: string
+  memberCreateSuccess: string
   saveMember: string
   noMembersTitle: string
   noMembersSubtitle: string
@@ -219,6 +255,17 @@ const fa: AppStrings = {
   nameRequired: 'نام را وارد کن.',
   usernameRequired: 'نام کاربری را وارد کن.',
   passwordRequired: 'رمز عبور را وارد کن.',
+  passwordTooShort: 'رمز عبور باید حداقل ۸ کاراکتر باشد.',
+  currentPasswordLabel: 'رمز عبور فعلی',
+  currentPasswordRequired: 'رمز عبور فعلی را وارد کن.',
+  currentPasswordInvalid: 'رمز عبور فعلی درست نیست.',
+  newPasswordLabel: 'رمز عبور جدید',
+  changePasswordTitle: 'تغییر رمز عبور',
+  changePasswordSubtitle: 'برای ادامه باید رمز عبور اولیه را عوض کنی.',
+  changePasswordAction: 'ثبت رمز جدید',
+  changePasswordLoading: 'در حال تغییر رمز...',
+  changePasswordFailed: 'تغییر رمز عبور انجام نشد.',
+  pendingInviteAcceptanceRequired: 'عضوهای {usernames} باید اول دعوت گروه را بپذیرند تا بتوانی این عملیات را انجام بدهی.',
   amountTooLarge: 'عدد واردشده بیش از حد بزرگ است.',
   invalidCredentials: 'نام کاربری یا رمز عبور درست نیست.',
   usernameTaken: 'این نام کاربری قبلاً استفاده شده است.',
@@ -275,6 +322,18 @@ const fa: AppStrings = {
   noExpensesSubtitle: 'اولین خرج گروه را ثبت کن تا مانده‌ها محاسبه شوند.',
   noSettlementsTitle: 'تسویه‌ای ثبت نشده',
   noSettlementsSubtitle: 'وقتی کسی بدهی‌اش را داد، از اینجا ثبتش کن.',
+  groupCardsTitle: 'شماره کارت‌ها',
+  groupCardsSubtitle: 'شماره کارت اعضای این گروه را اینجا نگه دار و سریع کپی کن.',
+  addGroupCard: 'افزودن شماره کارت',
+  editGroupCard: 'ویرایش شماره کارت',
+  noGroupCardsTitle: 'شماره کارتی ثبت نشده',
+  noGroupCardsSubtitle: 'اولین شماره کارت گروه را اضافه کن.',
+  cardOwnerLabel: 'به نام عضو',
+  cardNumberLabel: 'شماره کارت',
+  copyCardNumber: 'کپی شماره کارت',
+  cardCopied: 'شماره کارت کپی شد.',
+  saveGroupCard: 'ثبت شماره کارت',
+  saveGroupCardChanges: 'ذخیره تغییرات',
   membersOfGroupPrefix: 'اعضای',
   invitesTitle: 'دعوت‌نامه‌ها',
   noInvitesTitle: 'دعوت‌نامه‌ای نداری',
@@ -285,6 +344,19 @@ const fa: AppStrings = {
   addMember: 'افزودن عضو',
   editMember: 'ویرایش عضو',
   memberPlaceholder: 'نام کاربری عضو',
+  memberSuggestionHint: 'حداقل ۳ کاراکتر وارد کن تا پیشنهادها نمایش داده شوند.',
+  memberSuggestionLoading: 'در حال جست‌وجوی کاربرها...',
+  memberSuggestionEmpty: 'کاربر منطبقی پیدا نشد. می‌توانی نام کاربری را دستی کامل کنی.',
+  memberSuggestionError: 'جست‌وجوی پیشنهادها انجام نشد. دوباره تلاش کن.',
+  memberCreatePromptTitle: 'کاربر پیدا نشد',
+  memberCreatePromptSubtitle: 'اگر کاربر هنوز حساب نساخته، همین حالا نام کاربری‌اش را بنویس؛ بعد از ثبت عضو می‌توانی حسابش را همان‌جا بسازی.',
+  memberCreateNameLabel: 'نام کاربر جدید',
+  memberCreateUsernameLabel: 'نام کاربری',
+  memberCreatePasswordLabel: 'رمز عبور اولیه',
+  memberCreateDefaultPassword: 'گذاشتن رمز پیش‌فرض 12345678',
+  memberCreateAction: 'ساخت کاربر و افزودن',
+  memberCreateFailed: 'ساخت کاربر جدید انجام نشد.',
+  memberCreateSuccess: 'کاربر ساخته شد و به گروه اضافه شد.',
   saveMember: 'ثبت عضو',
   noMembersTitle: 'هیچ عضوی ثبت نشده',
   noMembersSubtitle: 'برای ثبت خرج حداقل یک عضو نیاز داری.',
@@ -415,6 +487,17 @@ const en: AppStrings = {
   nameRequired: 'Enter your name.',
   usernameRequired: 'Enter a username.',
   passwordRequired: 'Enter a password.',
+  passwordTooShort: 'Password must be at least 8 characters.',
+  currentPasswordLabel: 'Current password',
+  currentPasswordRequired: 'Enter your current password.',
+  currentPasswordInvalid: 'Current password is incorrect.',
+  newPasswordLabel: 'New password',
+  changePasswordTitle: 'Change password',
+  changePasswordSubtitle: 'You need to replace the temporary password before using the app.',
+  changePasswordAction: 'Save new password',
+  changePasswordLoading: 'Changing password...',
+  changePasswordFailed: 'Could not change the password.',
+  pendingInviteAcceptanceRequired: 'Members {usernames} must accept the group invite before you can complete this action.',
   amountTooLarge: 'The entered amount is too large.',
   invalidCredentials: 'Username or password is incorrect.',
   usernameTaken: 'This username is already taken.',
@@ -471,6 +554,18 @@ const en: AppStrings = {
   noExpensesSubtitle: 'Add the first expense to start calculating balances.',
   noSettlementsTitle: 'No settlements yet',
   noSettlementsSubtitle: 'Record real repayments here when they happen.',
+  groupCardsTitle: 'Card numbers',
+  groupCardsSubtitle: 'Keep each member card handy and copy it instantly.',
+  addGroupCard: 'Add card number',
+  editGroupCard: 'Edit card number',
+  noGroupCardsTitle: 'No card numbers yet',
+  noGroupCardsSubtitle: 'Add the first card number for this group.',
+  cardOwnerLabel: 'Member',
+  cardNumberLabel: 'Card number',
+  copyCardNumber: 'Copy card number',
+  cardCopied: 'Card number copied.',
+  saveGroupCard: 'Save card number',
+  saveGroupCardChanges: 'Save changes',
   membersOfGroupPrefix: 'Members of',
   invitesTitle: 'Invites',
   noInvitesTitle: 'No pending invites',
@@ -481,6 +576,19 @@ const en: AppStrings = {
   addMember: 'Add member',
   editMember: 'Edit member',
   memberPlaceholder: 'Member username',
+  memberSuggestionHint: 'Type at least 3 characters to see suggestions.',
+  memberSuggestionLoading: 'Searching users...',
+  memberSuggestionEmpty: 'No matching users found. You can still finish the username manually.',
+  memberSuggestionError: 'Could not load suggestions. Try again.',
+  memberCreatePromptTitle: 'User not found',
+  memberCreatePromptSubtitle: 'If the user has not created an account yet, type the username now. After tapping add member, you can create the account right here.',
+  memberCreateNameLabel: 'New user name',
+  memberCreateUsernameLabel: 'Username',
+  memberCreatePasswordLabel: 'Initial password',
+  memberCreateDefaultPassword: 'Use default password 12345678',
+  memberCreateAction: 'Create user and add',
+  memberCreateFailed: 'Could not create the new user.',
+  memberCreateSuccess: 'User created and added to the group.',
   saveMember: 'Save member',
   noMembersTitle: 'No members yet',
   noMembersSubtitle: 'You need at least one member before adding expenses.',

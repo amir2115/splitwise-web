@@ -28,6 +28,12 @@ export function formatCalculatorDisplayValue(input: string) {
   return result === null ? null : new Intl.NumberFormat('en-US').format(result)
 }
 
+export function formatCalculatorExpressionInput(input: string) {
+  const normalized = normalizeExpression(input)
+  if (!normalized) return ''
+  return normalized.replace(/\d+/g, (chunk) => new Intl.NumberFormat('en-US').format(Number.parseInt(chunk, 10)))
+}
+
 export function normalizeExpression(input: string) {
   return normalizeDigits(input).replace(/[^0-9+\-*/()]/g, '')
 }

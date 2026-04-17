@@ -48,4 +48,24 @@ describe('CalculatorAmountInput', () => {
     expect(document.body.querySelector('.calculator-sheet')).not.toBeNull()
     expect(document.body.textContent).toContain('Calculator')
   })
+
+  it('formats calculator expression input with grouping separators', async () => {
+    const wrapper = mount(CalculatorAmountInput, {
+      props: {
+        modelValue: '',
+        label: 'Amount',
+      },
+      attachTo: document.body,
+    })
+
+    await wrapper.get('.amount-field__icon-button').trigger('click')
+
+    const input = document.body.querySelector('.calculator-expression-input') as HTMLInputElement | null
+    expect(input).not.toBeNull()
+    input!.value = '12000+3000'
+    input!.dispatchEvent(new Event('input'))
+    await wrapper.vm.$nextTick()
+
+    expect(input!.value).toBe('12,000+3,000')
+  })
 })

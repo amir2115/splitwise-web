@@ -7,6 +7,11 @@ export const useSettlementsStore = defineStore('settlements', () => {
   const byGroupId = ref<Record<string, Settlement[]>>({})
   const isLoading = ref(false)
 
+  function reset() {
+    byGroupId.value = {}
+    isLoading.value = false
+  }
+
   async function load(groupId: string) {
     const authStore = useAuthStore()
     isLoading.value = true
@@ -45,5 +50,5 @@ export const useSettlementsStore = defineStore('settlements', () => {
     byGroupId.value[settlement.group_id] = (byGroupId.value[settlement.group_id] ?? []).filter((item) => item.id !== settlement.id)
   }
 
-  return { byGroupId, isLoading, load, save, remove }
+  return { byGroupId, isLoading, load, save, remove, reset }
 })

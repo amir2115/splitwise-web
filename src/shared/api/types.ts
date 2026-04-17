@@ -8,6 +8,7 @@ export interface User {
   id: string
   name: string
   username: string
+  must_change_password: boolean
   created_at: string
   updated_at: string
 }
@@ -21,6 +22,25 @@ export interface TokenPair {
 export interface AuthResponse {
   user: User
   tokens: TokenPair
+}
+
+export interface UserCreateByInviterRequest {
+  name: string
+  username: string
+  password: string
+}
+
+export interface ChangePasswordRequest {
+  current_password: string
+  new_password: string
+}
+
+export interface InlineMemberCreateRequest {
+  group_id: string
+  name: string
+  username: string
+  password: string
+  is_archived: boolean
 }
 
 export interface HealthResponse {
@@ -52,6 +72,17 @@ export interface Group {
   deleted_at: string | null
 }
 
+export interface GroupCard {
+  id: string
+  group_id: string
+  member_id: string
+  card_number: string
+  user_id: string
+  created_at: string
+  updated_at: string
+  deleted_at: string | null
+}
+
 export interface Member {
   id: string
   group_id: string
@@ -62,6 +93,12 @@ export interface Member {
   created_at: string
   updated_at: string
   deleted_at: string | null
+}
+
+export interface MemberSuggestion {
+  id: string
+  username: string
+  name: string | null
 }
 
 export interface AddMemberResponse {

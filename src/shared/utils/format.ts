@@ -46,6 +46,11 @@ export function formatCompactCount(value: number, language: AppLanguage) {
   return formatAmount(value, language)
 }
 
+export function formatCardNumber(cardNumber: string) {
+  const value = digitsOnly(cardNumber).slice(0, 16)
+  return value.replace(/(.{4})(?=.)/g, '$1 ').trim()
+}
+
 export function formatDate(input: string, language: AppLanguage) {
   const locale = language === 'fa' ? 'fa-IR' : 'en-US'
   return new Intl.DateTimeFormat(locale, {

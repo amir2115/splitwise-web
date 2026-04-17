@@ -8,6 +8,12 @@ export const useGroupInvitesStore = defineStore('groupInvites', () => {
   const isLoading = ref(false)
   const hasLoaded = ref(false)
 
+  function reset() {
+    invites.value = []
+    isLoading.value = false
+    hasLoaded.value = false
+  }
+
   async function load(status = 'pending', force = false) {
     const authStore = useAuthStore()
     if ((isLoading.value || hasLoaded.value) && !force) return
@@ -34,5 +40,5 @@ export const useGroupInvitesStore = defineStore('groupInvites', () => {
     return invite
   }
 
-  return { invites, isLoading, hasLoaded, load, accept, reject }
+  return { invites, isLoading, hasLoaded, load, accept, reject, reset }
 })

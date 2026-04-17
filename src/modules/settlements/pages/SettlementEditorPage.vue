@@ -14,6 +14,7 @@ import { useSettingsStore } from '@/shared/stores/settings'
 import { useSnackbarStore } from '@/shared/stores/snackbar'
 import { digitsOnly, formatAmountInput, parseAmountInput, isAmountOverflow } from '@/shared/utils/format'
 import { translateMessageKey } from '@/shared/i18n/strings'
+import { resolveAppErrorMessage } from '@/shared/utils/apiErrors'
 
 const route = useRoute()
 const router = useRouter()
@@ -124,7 +125,7 @@ async function submit() {
     snackbarStore.push(translateMessageKey(language.value, 'SETTLEMENT_SAVED') ?? strings.value.saveSettlement)
     router.back()
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : strings.value.genericError
+    errorMessage.value = resolveAppErrorMessage(error, strings.value, language.value)
   } finally {
     isSaving.value = false
   }

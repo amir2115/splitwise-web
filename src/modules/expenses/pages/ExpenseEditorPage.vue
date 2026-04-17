@@ -14,6 +14,7 @@ import { useSettingsStore } from '@/shared/stores/settings'
 import { useSnackbarStore } from '@/shared/stores/snackbar'
 import { formatAmount, isAmountOverflow, parseAmountInput } from '@/shared/utils/format'
 import { translateMessageKey } from '@/shared/i18n/strings'
+import { resolveAppErrorMessage } from '@/shared/utils/apiErrors'
 import { validateExpenseDraft } from '@/shared/utils/expense'
 import {
   computeExpenseEditorState,
@@ -432,7 +433,7 @@ async function submit() {
     snackbarStore.push(translateMessageKey(language.value, 'EXPENSE_SAVED') ?? strings.value.saveExpense)
     router.back()
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : strings.value.genericError
+    errorMessage.value = resolveAppErrorMessage(error, strings.value, language.value)
   } finally {
     isSaving.value = false
   }
@@ -718,7 +719,12 @@ function shareHelperText(member: EnrichedMemberDraft) {
         </div>
 
         <TransitionGroup name="feature-transition" tag="div" class="list-stack">
-          <article v-for="member in enrichedMembers" :key="member.memberId" class="member-editor-card">
+          <article
+            v-for="member in enrichedMembers"
+            :key="member.memberId"
+            class="member-editor-card"
+            :class="{ 'member-editor-card--collapsed': !member.includedInSplit }"
+          >
             <div class="page-stack member-editor-card__content">
               <div class="member-editor-card__header">
                 <div class="page-stack" style="gap: 4px;">
@@ -735,72 +741,74 @@ function shareHelperText(member: EnrichedMemberDraft) {
                 </label>
               </div>
 
-              <div class="quick-inline-actions">
-                <button class="pill-button" type="button" @click="assignFullAmount(member.memberId)">
-                  {{ strings.payFullAmountAction }}
-                </button>
-                <button v-if="member.payerAmountInput" class="outline-button" type="button" @click="updateMember(member.memberId, { payerAmountInput: '' })">
-                  {{ pageText.clearAmountLabel }}
-                </button>
-              </div>
-
-              <CalculatorAmountInput
-                :model-value="member.payerAmountInput"
-                :label="strings.paidHowMuchLabel"
-                @update:model-value="updateMember(member.memberId, { payerAmountInput: $event })"
-              />
-              <span class="muted" :class="{ 'text-danger': helperText(member).tone === 'error' }">{{ helperText(member).text }}</span>
-              <div v-if="member.suggestedRemainingPayer" class="helper-action-row">
-                <button class="pill-button" type="button" @click="applySuggestedPayer(member.memberId)">
-                  {{ pageText.applyRemainingPayer(formatAmount(member.suggestedRemainingPayer, language)) }}
-                </button>
-              </div>
-
-              <template v-if="member.includedInSplit">
-                <template v-if="form.splitType === 'EXACT'">
-                  <CalculatorAmountInput
-                    :model-value="member.exactShareInput"
-                    :label="pageText.baseShareLabel"
-                    @update:model-value="updateMember(member.memberId, { exactShareInput: $event })"
-                  />
-                  <span class="muted" :class="{ 'text-danger': shareHelperText(member).tone === 'error' }">{{ shareHelperText(member).text }}</span>
+              <Transition name="feature-transition">
+                <div v-if="member.includedInSplit" class="page-stack member-editor-card__body">
                   <div class="quick-inline-actions">
-                    <button v-if="member.suggestedRemainingShare" class="pill-button" type="button" @click="applySuggestedShare(member.memberId)">
-                      {{ pageText.applyRemainingShare(formatAmount(member.suggestedRemainingShare, language)) }}
+                    <button class="pill-button" type="button" @click="assignFullAmount(member.memberId)">
+                      {{ strings.payFullAmountAction }}
                     </button>
-                    <button v-if="member.equalRemainingShare" class="pill-button" type="button" @click="applyEqualRemainingShare(member.memberId)">
-                      {{ pageText.applyEqualRemainingShare(formatAmount(member.equalRemainingShare, language)) }}
+                    <button v-if="member.payerAmountInput" class="outline-button" type="button" @click="updateMember(member.memberId, { payerAmountInput: '' })">
+                      {{ pageText.clearAmountLabel }}
                     </button>
                   </div>
-                </template>
 
-                <div class="member-breakdown-grid">
-                  <div class="member-breakdown-tile member-breakdown-tile--strong">
-                    <span class="muted">{{ pageText.finalShareLabel }}</span>
-                    <AmountText :amount="member.finalSharePreview" :language="language" size="md" tone="primary" />
+                  <CalculatorAmountInput
+                    :model-value="member.payerAmountInput"
+                    :label="strings.paidHowMuchLabel"
+                    @update:model-value="updateMember(member.memberId, { payerAmountInput: $event })"
+                  />
+                  <span class="muted" :class="{ 'text-danger': helperText(member).tone === 'error' }">{{ helperText(member).text }}</span>
+                  <div v-if="member.suggestedRemainingPayer" class="helper-action-row">
+                    <button class="pill-button" type="button" @click="applySuggestedPayer(member.memberId)">
+                      {{ pageText.applyRemainingPayer(formatAmount(member.suggestedRemainingPayer, language)) }}
+                    </button>
                   </div>
-                  <button class="outline-button member-breakdown-toggle" type="button" @click="toggleMemberExpanded(member.memberId)">
-                    {{ isMemberExpanded(member.memberId) ? (language === 'fa' ? 'بستن جزئیات' : 'Hide details') : (language === 'fa' ? 'جزئیات' : 'Details') }}
-                  </button>
+
+                  <template v-if="form.splitType === 'EXACT'">
+                    <CalculatorAmountInput
+                      :model-value="member.exactShareInput"
+                      :label="pageText.baseShareLabel"
+                      @update:model-value="updateMember(member.memberId, { exactShareInput: $event })"
+                    />
+                    <span class="muted" :class="{ 'text-danger': shareHelperText(member).tone === 'error' }">{{ shareHelperText(member).text }}</span>
+                    <div class="quick-inline-actions">
+                      <button v-if="member.suggestedRemainingShare" class="pill-button" type="button" @click="applySuggestedShare(member.memberId)">
+                        {{ pageText.applyRemainingShare(formatAmount(member.suggestedRemainingShare, language)) }}
+                      </button>
+                      <button v-if="member.equalRemainingShare" class="pill-button" type="button" @click="applyEqualRemainingShare(member.memberId)">
+                        {{ pageText.applyEqualRemainingShare(formatAmount(member.equalRemainingShare, language)) }}
+                      </button>
+                    </div>
+                  </template>
+
+                  <div class="member-breakdown-grid">
+                    <div class="member-breakdown-tile member-breakdown-tile--strong">
+                      <span class="muted">{{ pageText.finalShareLabel }}</span>
+                      <AmountText :amount="member.finalSharePreview" :language="language" size="md" tone="primary" />
+                    </div>
+                    <button class="outline-button member-breakdown-toggle" type="button" @click="toggleMemberExpanded(member.memberId)">
+                      {{ isMemberExpanded(member.memberId) ? (language === 'fa' ? 'بستن جزئیات' : 'Hide details') : (language === 'fa' ? 'جزئیات' : 'Details') }}
+                    </button>
+                  </div>
+
+                  <Transition name="feature-transition">
+                    <div v-if="isMemberExpanded(member.memberId)" class="member-breakdown-grid member-breakdown-grid--details">
+                      <div class="member-breakdown-tile">
+                        <span class="muted">{{ pageText.baseShareLabel }}</span>
+                        <AmountText :amount="member.baseSharePreview" :language="language" size="md" />
+                      </div>
+                      <div class="member-breakdown-tile">
+                        <span class="muted">{{ pageText.taxShareLabel }}</span>
+                        <AmountText :amount="member.taxSharePreview" :language="language" size="md" />
+                      </div>
+                      <div class="member-breakdown-tile">
+                        <span class="muted">{{ pageText.serviceChargeShareLabel }}</span>
+                        <AmountText :amount="member.serviceChargeSharePreview" :language="language" size="md" />
+                      </div>
+                    </div>
+                  </Transition>
                 </div>
-
-                <Transition name="feature-transition">
-                  <div v-if="isMemberExpanded(member.memberId)" class="member-breakdown-grid member-breakdown-grid--details">
-                    <div class="member-breakdown-tile">
-                      <span class="muted">{{ pageText.baseShareLabel }}</span>
-                      <AmountText :amount="member.baseSharePreview" :language="language" size="md" />
-                    </div>
-                    <div class="member-breakdown-tile">
-                      <span class="muted">{{ pageText.taxShareLabel }}</span>
-                      <AmountText :amount="member.taxSharePreview" :language="language" size="md" />
-                    </div>
-                    <div class="member-breakdown-tile">
-                      <span class="muted">{{ pageText.serviceChargeShareLabel }}</span>
-                      <AmountText :amount="member.serviceChargeSharePreview" :language="language" size="md" />
-                    </div>
-                  </div>
-                </Transition>
-              </template>
+              </Transition>
             </div>
           </article>
         </TransitionGroup>
@@ -1078,6 +1086,15 @@ function shareHelperText(member: EnrichedMemberDraft) {
   padding: 16px;
 }
 
+.member-editor-card__body {
+  gap: 14px;
+}
+
+.member-editor-card--collapsed .member-editor-card__content {
+  gap: 8px;
+  padding-block: 14px;
+}
+
 .member-breakdown-grid--details {
   margin-top: -2px;
 }
@@ -1118,10 +1135,14 @@ function shareHelperText(member: EnrichedMemberDraft) {
   .split-type-panel,
   .expense-summary-card__header,
   .service-charge-card__header,
-  .tax-breakdown-card__header,
-  .member-editor-card__header {
+  .tax-breakdown-card__header {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .member-editor-card__header {
+    flex-direction: row;
+    align-items: center;
   }
 
   .expense-summary-card__header-actions {

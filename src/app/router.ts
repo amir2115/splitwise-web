@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/shared/stores/auth'
 import AuthPage from '@/modules/auth/pages/AuthPage.vue'
+import ChangePasswordPage from '@/modules/auth/pages/ChangePasswordPage.vue'
 import GroupsPage from '@/modules/groups/pages/GroupsPage.vue'
 import GroupDashboardPage from '@/modules/groups/pages/GroupDashboardPage.vue'
 import MembersPage from '@/modules/members/pages/MembersPage.vue'
@@ -18,6 +19,7 @@ export const router = createRouter({
     { path: '/auth', redirect: '/auth/login' },
     { path: '/auth/login', component: AuthPage, meta: { guestOnly: true, authMode: 'login' } },
     { path: '/auth/register', component: AuthPage, meta: { guestOnly: true, authMode: 'register' } },
+    { path: '/auth/change-password', component: ChangePasswordPage, meta: { requiresAuth: true, passwordChangeOnly: true } },
     { path: '/groups', component: GroupsPage, meta: { requiresAuth: true, topLevel: true, allowGuest: true } },
     { path: '/groups/:groupId', component: GroupDashboardPage, meta: { requiresAuth: true } },
     { path: '/groups/:groupId/members', component: MembersPage, meta: { requiresAuth: true } },
@@ -40,6 +42,14 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated && !(authStore.isGuestMode && to.meta.allowGuest)) {
     return '/auth/login'
+  }
+
+  if (authStore.isAuthenticated && authStore.requiresPasswordChange) {
+    if (!to.meta.passwordChangeOnly) return '/auth/change-password'
+  }
+
+  if (to.meta.passwordChangeOnly && !authStore.requiresPasswordChange) {
+    return '/groups'
   }
 
   if (to.meta.guestOnly && authStore.hasActiveSession) {

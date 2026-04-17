@@ -41,6 +41,11 @@ async function submit() {
     return
   }
 
+  if (form.password.length < 8) {
+    errorMessage.value = strings.value.passwordTooShort
+    return
+  }
+
   try {
     await authStore.register({
       name: form.name.trim(),
@@ -58,6 +63,9 @@ function resolveAuthError(error: unknown, isRegister: boolean, appStrings: typeo
 
   if (error instanceof ApiError) {
     const message = error.message.toLowerCase()
+    if (isRegister && message.includes('password') && (message.includes('8') || message.includes('eight') || message.includes('at least'))) {
+      return appStrings.passwordTooShort
+    }
     if (isRegister && (error.status === 409 || message.includes('already') || message.includes('taken') || message.includes('exists'))) {
       return appStrings.usernameTaken
     }

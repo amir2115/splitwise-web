@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { ApiError } from '@/shared/api/client'
 import BaseModal from '@/shared/components/BaseModal.vue'
 import EmptyStateCard from '@/shared/components/EmptyStateCard.vue'
 import PageTopBar from '@/shared/components/PageTopBar.vue'
 import { useGroupsStore } from '@/modules/groups/store'
+import { MIN_MEMBER_SUGGESTION_QUERY_LENGTH, normalizeMemberSuggestionQuery, useMemberSuggestions } from '@/modules/members/memberSuggestions'
 import { useMembersStore } from '@/modules/members/store'
 import { useSettingsStore } from '@/shared/stores/settings'
 import { useSnackbarStore } from '@/shared/stores/snackbar'
+import type { MemberSuggestion } from '@/shared/api/types'
 import { formatDate } from '@/shared/utils/format'
 
 const route = useRoute()
@@ -28,6 +31,41 @@ const members = computed(() => byGroupId.value[groupId] ?? [])
 
 const modalMemberId = ref<string | null>(null)
 const memberUsername = ref('')
+const memberSuggestions = useMemberSuggestions((query) => membersStore.searchSuggestions(groupId, query))
+const {
+  activeIndex,
+  applySelection: applyMemberSuggestion,
+  dismissSuggestions,
+  errorMessage: memberSuggestionError,
+  hasResolvedQuery,
+  isLoading: isSuggestionLoading,
+  moveSelection,
+  scheduleSearch,
+  selectActiveSuggestion,
+  setActiveIndex,
+  suggestions,
+} = memberSuggestions
+
+const isCreateMode = computed(() => modalMemberId.value === '')
+const isInlineCreateMode = ref(false)
+const normalizedMemberQuery = computed(() => normalizeMemberSuggestionQuery(memberUsername.value))
+const shouldShowSuggestionHint = computed(
+  () => isCreateMode.value && normalizedMemberQuery.value.length < MIN_MEMBER_SUGGESTION_QUERY_LENGTH,
+)
+const shouldShowNoSuggestionResults = computed(
+    () =>
+    isCreateMode.value &&
+    normalizedMemberQuery.value.length >= MIN_MEMBER_SUGGESTION_QUERY_LENGTH &&
+    hasResolvedQuery.value &&
+    !isSuggestionLoading.value &&
+    !memberSuggestionError.value &&
+    suggestions.value.length === 0,
+)
+const inlineCreateName = ref('')
+const inlineCreatePassword = ref('')
+const inlineCreateError = ref('')
+const isInlineCreateSubmitting = ref(false)
+const isModalBusy = computed(() => isInlineCreateSubmitting.value)
 
 onMounted(async () => {
   try {
@@ -38,37 +76,167 @@ onMounted(async () => {
   }
 })
 
+onBeforeUnmount(() => {
+  dismissSuggestions()
+})
+
 function openCreate() {
   modalMemberId.value = ''
   memberUsername.value = ''
+  inlineCreateName.value = ''
+  inlineCreatePassword.value = ''
+  inlineCreateError.value = ''
+  isInlineCreateMode.value = false
+  dismissSuggestions()
 }
 
 function openEdit(id: string, username: string) {
   modalMemberId.value = id
   memberUsername.value = username
+  dismissSuggestions()
 }
 
 function closeModal() {
   modalMemberId.value = null
   memberUsername.value = ''
+  inlineCreateName.value = ''
+  inlineCreatePassword.value = ''
+  inlineCreateError.value = ''
+  isInlineCreateMode.value = false
+  dismissSuggestions()
+}
+
+function updateCreateSuggestions() {
+  if (!isCreateMode.value) return
+  scheduleSearch(memberUsername.value)
+}
+
+function applySuggestion(suggestion: MemberSuggestion) {
+  memberUsername.value = applyMemberSuggestion(suggestion)
+}
+
+function onMemberInputKeydown(event: KeyboardEvent) {
+  if (!isCreateMode.value) return
+  if (event.key === 'ArrowDown') {
+    event.preventDefault()
+    moveSelection(1)
+    return
+  }
+  if (event.key === 'ArrowUp') {
+    event.preventDefault()
+    moveSelection(-1)
+    return
+  }
+  if (event.key === 'Escape') {
+    dismissSuggestions()
+    return
+  }
+  if (event.key === 'Enter' && suggestions.value.length > 0) {
+    const selectedSuggestion = selectActiveSuggestion()
+    if (!selectedSuggestion) return
+    event.preventDefault()
+    applySuggestion(selectedSuggestion)
+  }
 }
 
 async function saveMember() {
   try {
+    dismissSuggestions()
     if (modalMemberId.value) {
       const member = members.value.find((item) => item.id === modalMemberId.value)
       if (!member) return
       await membersStore.update(member, { username: memberUsername.value.trim() })
+      closeModal()
     } else {
-      const response = await membersStore.create(groupId, memberUsername.value.trim())
-      if (response.outcome === 'invite_sent') {
-        snackbarStore.push(strings.value.pendingInviteLabel, 'info')
-      }
+      const shouldClose = await createOrPromptMember()
+      if (shouldClose) closeModal()
     }
-    closeModal()
   } catch (error) {
     snackbarStore.push(error instanceof Error ? error.message : strings.value.genericError, 'error')
   }
+}
+
+async function createOrPromptMember() {
+  try {
+    const response = await membersStore.create(groupId, memberUsername.value.trim())
+    if (response.outcome === 'invite_sent') {
+      snackbarStore.push(strings.value.pendingInviteLabel, 'info')
+    }
+    return true
+  } catch (error) {
+    if (isUsernameNotFoundError(error)) {
+      isInlineCreateMode.value = true
+      inlineCreateError.value = ''
+      inlineCreateName.value = inlineCreateName.value || memberUsername.value.trim()
+      return false
+    }
+    throw error
+  }
+}
+
+async function createMissingUserAndAddMember() {
+  inlineCreateError.value = ''
+
+  if (!inlineCreateName.value.trim()) {
+    inlineCreateError.value = strings.value.nameRequired
+    return
+  }
+  if (!memberUsername.value.trim()) {
+    inlineCreateError.value = strings.value.usernameRequired
+    return
+  }
+  if (!inlineCreatePassword.value) {
+    inlineCreateError.value = strings.value.passwordRequired
+    return
+  }
+  if (inlineCreatePassword.value.length < 8) {
+    inlineCreateError.value = strings.value.passwordTooShort
+    return
+  }
+
+  isInlineCreateSubmitting.value = true
+  try {
+    const response = await membersStore.inlineCreate({
+      group_id: groupId,
+      name: inlineCreateName.value.trim(),
+      username: memberUsername.value.trim(),
+      password: inlineCreatePassword.value,
+      is_archived: false,
+    })
+    snackbarStore.push(response.outcome === 'added' ? strings.value.memberCreateSuccess : strings.value.pendingInviteLabel, response.outcome === 'added' ? 'success' : 'info')
+    closeModal()
+  } catch (error) {
+    inlineCreateError.value = resolveInlineCreateError(error)
+  } finally {
+    isInlineCreateSubmitting.value = false
+  }
+}
+
+function fillDefaultPassword() {
+  inlineCreatePassword.value = '12345678'
+}
+
+function resolveInlineCreateError(error: unknown) {
+  if (error instanceof TypeError) return strings.value.networkError
+  if (error instanceof ApiError) {
+    const payloadCode = readApiErrorCode(error)
+    if (payloadCode === 'invalid_name') return strings.value.nameRequired
+    if (payloadCode === 'invalid_username') return strings.value.usernameRequired
+    if (payloadCode === 'weak_password') return strings.value.passwordTooShort
+    if (payloadCode === 'username_taken') return strings.value.usernameTaken
+    if (payloadCode === 'already_member') return strings.value.memberCreateSuccess
+  }
+  return error instanceof Error ? error.message : strings.value.memberCreateFailed
+}
+
+function readApiErrorCode(error: ApiError) {
+  if (!error.payload || typeof error.payload !== 'object') return null
+  const payload = error.payload as { error?: { code?: string } }
+  return typeof payload.error?.code === 'string' ? payload.error.code : null
+}
+
+function isUsernameNotFoundError(error: unknown) {
+  return error instanceof ApiError && readApiErrorCode(error) === 'username_not_found'
 }
 
 async function removeMember(id: string) {
@@ -112,11 +280,162 @@ async function removeMember(id: string) {
   <BaseModal v-if="modalMemberId !== null" :title="modalMemberId ? strings.editMember : strings.addMember" @close="closeModal">
     <div class="form-field">
       <label class="form-field__label">{{ strings.memberPlaceholder }}</label>
-      <input v-model="memberUsername" class="text-input" type="text" autocapitalize="off" autocomplete="off" />
+      <div class="member-suggestion-field">
+        <input
+          v-model="memberUsername"
+          class="text-input"
+          type="text"
+          autocapitalize="off"
+          autocomplete="off"
+          :disabled="isModalBusy"
+          :aria-expanded="isCreateMode && suggestions.length > 0 ? 'true' : 'false'"
+          aria-autocomplete="list"
+          @input="updateCreateSuggestions"
+          @keydown="onMemberInputKeydown"
+        />
+        <div v-if="isCreateMode" class="member-suggestion-panel">
+          <p class="member-suggestion-state">
+            {{ strings.memberCreatePromptSubtitle }}
+          </p>
+          <p v-if="shouldShowSuggestionHint" class="member-suggestion-state">
+            {{ strings.memberSuggestionHint }}
+          </p>
+          <p v-else-if="isSuggestionLoading" class="member-suggestion-state">
+            {{ strings.memberSuggestionLoading }}
+          </p>
+          <p v-else-if="memberSuggestionError" class="member-suggestion-state member-suggestion-state--error">
+            {{ strings.memberSuggestionError }}
+          </p>
+          <p v-else-if="shouldShowNoSuggestionResults" class="member-suggestion-state">
+            {{ strings.memberSuggestionEmpty }}
+          </p>
+          <div v-else-if="suggestions.length > 0" class="member-suggestion-list" role="listbox">
+            <button
+              v-for="(suggestion, index) in suggestions"
+              :key="suggestion.id"
+              class="member-suggestion-option"
+              :class="{ 'member-suggestion-option--active': index === activeIndex }"
+              type="button"
+              @mousedown.prevent="applySuggestion(suggestion)"
+              @mouseenter="setActiveIndex(index)"
+            >
+              <span class="member-suggestion-option__username">@{{ suggestion.username }}</span>
+              <span v-if="suggestion.name" class="member-suggestion-option__name">{{ suggestion.name }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="isInlineCreateMode && isCreateMode" class="member-inline-create">
+      <div class="member-inline-create__header">
+        <strong>{{ strings.memberCreatePromptTitle }}</strong>
+        <p>{{ strings.memberCreatePromptSubtitle }}</p>
+      </div>
+      <div class="form-field">
+        <label class="form-field__label">{{ strings.memberCreateNameLabel }}</label>
+        <input v-model="inlineCreateName" class="text-input" type="text" :disabled="isModalBusy" />
+      </div>
+      <div class="form-field">
+        <label class="form-field__label">{{ strings.memberCreateUsernameLabel }}</label>
+        <input v-model="memberUsername" class="text-input" type="text" autocapitalize="off" :disabled="isModalBusy" />
+      </div>
+      <div class="form-field">
+        <label class="form-field__label">{{ strings.memberCreatePasswordLabel }}</label>
+        <input v-model="inlineCreatePassword" class="text-input" type="password" :disabled="isModalBusy" />
+      </div>
+      <button class="outline-button member-inline-create__default" type="button" :disabled="isModalBusy" @click="fillDefaultPassword">
+        {{ strings.memberCreateDefaultPassword }}
+      </button>
+      <p v-if="inlineCreateError" class="member-suggestion-state member-suggestion-state--error">{{ inlineCreateError }}</p>
     </div>
     <div class="modal-actions">
-      <button class="outline-button" type="button" style="flex: 1;" @click="closeModal">{{ strings.cancel }}</button>
-      <button class="filled-button" type="button" style="flex: 1; height: 48px;" @click="saveMember">{{ strings.save }}</button>
+      <button class="outline-button" type="button" style="flex: 1;" :disabled="isModalBusy" @click="closeModal">{{ strings.cancel }}</button>
+      <button
+        class="filled-button"
+        type="button"
+        style="flex: 1; height: 48px;"
+        :disabled="isModalBusy"
+        @click="isInlineCreateMode && isCreateMode ? createMissingUserAndAddMember() : saveMember()"
+      >
+        {{ isInlineCreateMode && isCreateMode ? strings.memberCreateAction : strings.save }}
+      </button>
     </div>
   </BaseModal>
 </template>
+
+<style scoped>
+.member-suggestion-field {
+  display: grid;
+  gap: 10px;
+}
+
+.member-suggestion-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.member-suggestion-state {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.member-suggestion-state--error {
+  color: var(--color-danger, #b42318);
+}
+
+.member-suggestion-list {
+  display: grid;
+  gap: 8px;
+}
+
+.member-suggestion-option {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 12%, var(--color-border));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--color-surface) 92%, white);
+  padding: 12px 14px;
+  text-align: left;
+  display: grid;
+  gap: 4px;
+  transition: border-color 0.18s ease, transform 0.18s ease, background-color 0.18s ease;
+}
+
+.member-suggestion-option--active {
+  border-color: color-mix(in srgb, var(--color-primary) 55%, white);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  transform: translateY(-1px);
+}
+
+.member-suggestion-option__username {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.member-suggestion-option__name {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.member-inline-create {
+  display: grid;
+  gap: 12px;
+  padding-top: 6px;
+}
+
+.member-inline-create__header {
+  display: grid;
+  gap: 6px;
+}
+
+.member-inline-create__header p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.member-inline-create__default {
+  width: 100%;
+}
+</style>

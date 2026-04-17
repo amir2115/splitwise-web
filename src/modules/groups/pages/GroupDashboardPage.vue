@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import HeroCard from '@/shared/components/HeroCard.vue'
@@ -10,7 +10,9 @@ import SummaryGrid from '@/shared/components/SummaryGrid.vue'
 import EmptyStateCard from '@/shared/components/EmptyStateCard.vue'
 import AmountText from '@/shared/components/AmountText.vue'
 import TransferFlow from '@/shared/components/TransferFlow.vue'
+import GroupCardsSection from '@/modules/groupCards/components/GroupCardsSection.vue'
 import { useGroupsStore } from '@/modules/groups/store'
+import { useGroupCardsStore } from '@/modules/groupCards/store'
 import { useMembersStore } from '@/modules/members/store'
 import { useExpensesStore } from '@/modules/expenses/store'
 import { useSettlementsStore } from '@/modules/settlements/store'
@@ -23,25 +25,30 @@ const route = useRoute()
 const router = useRouter()
 const groupId = route.params.groupId as string
 const groupsStore = useGroupsStore()
+const groupCardsStore = useGroupCardsStore()
 const membersStore = useMembersStore()
 const expensesStore = useExpensesStore()
 const settlementsStore = useSettlementsStore()
 const balancesStore = useBalancesStore()
 const settingsStore = useSettingsStore()
 const snackbarStore = useSnackbarStore()
+const pageLoading = ref(true)
 
 const { strings, language } = storeToRefs(settingsStore)
 const { groups } = storeToRefs(groupsStore)
+const { byGroupId: groupCardsByGroupId } = storeToRefs(groupCardsStore)
 const { byGroupId: membersByGroupId } = storeToRefs(membersStore)
 const { byGroupId: expensesByGroupId } = storeToRefs(expensesStore)
 const { byGroupId: settlementsByGroupId } = storeToRefs(settlementsStore)
 const { byGroupId: balancesByGroupId } = storeToRefs(balancesStore)
 
 const group = computed(() => groups.value.find((item) => item.id === groupId))
+const groupCards = computed(() => groupCardsByGroupId.value[groupId] ?? [])
 const members = computed(() => membersByGroupId.value[groupId] ?? [])
 const expenses = computed(() => expensesByGroupId.value[groupId] ?? [])
 const settlements = computed(() => settlementsByGroupId.value[groupId] ?? [])
-const canCreateTransactions = computed(() => members.value.length >= 2)
+const hasLoadedGroupData = computed(() => !pageLoading.value)
+const canCreateTransactions = computed(() => hasLoadedGroupData.value && members.value.length >= 2)
 
 const summaryItems = computed(() => {
   const openBalancesMembers = new Set<string>()
@@ -69,6 +76,7 @@ onMounted(async () => {
   try {
     if (groups.value.length === 0) await groupsStore.load()
     await Promise.all([
+      groupCardsStore.load(groupId),
       membersStore.load(groupId),
       expensesStore.load(groupId),
       settlementsStore.load(groupId),
@@ -76,6 +84,8 @@ onMounted(async () => {
     ])
   } catch (error) {
     snackbarStore.push(error instanceof Error ? error.message : strings.value.genericError, 'error')
+  } finally {
+    pageLoading.value = false
   }
 })
 
@@ -111,9 +121,21 @@ function openSettlementEditor() {
   <div class="page-shell page-stack">
     <PageTopBar :title="group?.name ?? strings.groupFallbackTitle" can-go-back @back="router.back()" />
     <HeroCard :title="strings.groupOverviewTitle" :subtitle="strings.groupOverviewSubtitle" icon="▣" />
-    <SummaryGrid :items="summaryItems" :language="language" />
+    <div v-if="pageLoading" class="surface-card surface-card--flat dashboard-loading">
+      <div class="dashboard-loading__header">
+        <div class="skeleton-line dashboard-loading__title"></div>
+        <div class="skeleton-line dashboard-loading__subtitle"></div>
+      </div>
+      <div class="dashboard-loading__grid">
+        <article v-for="item in 4" :key="`dashboard-skeleton-${item}`" class="summary-tile dashboard-loading__tile">
+          <div class="skeleton-line dashboard-loading__tile-label"></div>
+          <div class="skeleton-line dashboard-loading__tile-value"></div>
+        </article>
+      </div>
+    </div>
+    <SummaryGrid v-else :items="summaryItems" :language="language" />
     <InlineAlert
-      v-if="!canCreateTransactions"
+      v-if="hasLoadedGroupData && !canCreateTransactions"
       :title="strings.membersAction"
       :message="strings.needSecondMemberMessage"
     />
@@ -123,11 +145,11 @@ function openSettlementEditor() {
         <span class="action-card__icon">◎</span>
         <span class="action-card__title">{{ strings.membersAction }}</span>
       </button>
-      <button class="action-card" :class="{ 'is-disabled': !canCreateTransactions }" type="button" @click="openExpenseEditor">
+      <button class="action-card" :class="{ 'is-disabled': pageLoading || !canCreateTransactions }" type="button" @click="openExpenseEditor">
         <span class="action-card__icon">＋</span>
         <span class="action-card__title">{{ strings.newExpenseAction }}</span>
       </button>
-      <button class="action-card" :class="{ 'is-disabled': !canCreateTransactions }" type="button" @click="openSettlementEditor">
+      <button class="action-card" :class="{ 'is-disabled': pageLoading || !canCreateTransactions }" type="button" @click="openSettlementEditor">
         <span class="action-card__icon">↺</span>
         <span class="action-card__title">{{ strings.addSettlementAction }}</span>
       </button>
@@ -136,6 +158,8 @@ function openSettlementEditor() {
         <span class="action-card__title">{{ strings.balancesAction }}</span>
       </button>
     </div>
+
+    <GroupCardsSection :group-id="groupId" :group-cards="groupCards" :members="members" :language="language" :strings="strings" />
 
     <SectionHeader :title="strings.recentExpensesTitle" />
     <TransitionGroup name="feature-transition" tag="div" class="list-stack">
@@ -192,7 +216,72 @@ function openSettlementEditor() {
 </template>
 
 <style scoped>
+.skeleton-line {
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-outline) 20%, transparent),
+    color-mix(in srgb, var(--color-primary) 12%, transparent),
+    color-mix(in srgb, var(--color-outline) 20%, transparent)
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s linear infinite;
+  height: 14px;
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
 .is-disabled {
   opacity: 0.6;
+}
+
+.dashboard-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dashboard-loading__header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dashboard-loading__title {
+  width: 32%;
+}
+
+.dashboard-loading__subtitle {
+  width: 22%;
+}
+
+.dashboard-loading__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dashboard-loading__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 96px;
+}
+
+.dashboard-loading__tile-label {
+  width: 38%;
+}
+
+.dashboard-loading__tile-value {
+  width: 54%;
+  height: 20px;
 }
 </style>

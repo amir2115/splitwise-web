@@ -78,7 +78,7 @@ export function writeLanguage(language: AppLanguage) {
 
 export function readThemeMode(): ThemeMode {
   const value = safeStorage().getItem(KEYS.themeMode)
-  return value === 'dark' ? 'dark' : 'light'
+  return value === 'light' ? 'light' : 'dark'
 }
 
 export function writeThemeMode(themeMode: ThemeMode) {

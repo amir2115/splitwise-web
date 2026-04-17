@@ -7,6 +7,11 @@ export const useBalancesStore = defineStore('balances', () => {
   const byGroupId = ref<Record<string, GroupBalanceResponse>>({})
   const isLoading = ref(false)
 
+  function reset() {
+    byGroupId.value = {}
+    isLoading.value = false
+  }
+
   async function load(groupId: string) {
     const authStore = useAuthStore()
     isLoading.value = true
@@ -17,5 +22,5 @@ export const useBalancesStore = defineStore('balances', () => {
     }
   }
 
-  return { byGroupId, isLoading, load }
+  return { byGroupId, isLoading, load, reset }
 })
