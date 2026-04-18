@@ -6,7 +6,6 @@ import EmptyStateCard from '@/shared/components/EmptyStateCard.vue'
 import PageTopBar from '@/shared/components/PageTopBar.vue'
 import SectionHeader from '@/shared/components/SectionHeader.vue'
 import AmountText from '@/shared/components/AmountText.vue'
-import TransferFlow from '@/shared/components/TransferFlow.vue'
 import { deriveGroupBalances } from '@/modules/balances/groupBalances'
 import { useGroupsStore } from '@/modules/groups/store'
 import { useMembersStore } from '@/modules/members/store'
@@ -76,7 +75,7 @@ onMounted(async () => {
     <PageTopBar :title="`${strings.balancesPrefix} ${group?.name ?? ''}`" can-go-back @back="router.back()" />
 
     <div class="surface-card editor-card">
-      <div class="switch-field">
+      <div class="switch-field balances-switch-field">
         <div class="switch-field__content">
           <div class="page-topbar__title" style="font-size: 16px;">{{ strings.optimizePaymentsTitle }}</div>
           <div class="muted">{{ strings.optimizePaymentsSubtitle }}</div>
@@ -86,6 +85,38 @@ onMounted(async () => {
         </label>
       </div>
     </div>
+
+    <template v-if="simplify">
+      <SectionHeader :title="strings.suggestedPaymentsTitle" />
+      <TransitionGroup name="feature-transition" tag="div" class="list-stack">
+        <article
+          v-for="transfer in balanceResponse?.simplified_debts ?? []"
+          :key="`${transfer.from_member_id}-${transfer.to_member_id}`"
+          class="suggestion-panel"
+          style="cursor: pointer;"
+          @click="goToSuggestedSettlement(transfer)"
+        >
+          <div class="suggested-payment-row">
+            <div class="action-card__icon suggested-payment-icon" aria-hidden="true">{{ suggestedCardArrow }}</div>
+            <div class="suggested-payment-content">
+              <div class="suggested-payment-flow">
+                <strong class="suggested-payment-flow__party">{{ memberName(transfer.from_member_id) }}</strong>
+                <span class="suggested-payment-flow__arrow" aria-hidden="true">→</span>
+                <strong class="suggested-payment-flow__party">{{ memberName(transfer.to_member_id) }}</strong>
+              </div>
+                <div class="suggested-payment-amount">
+                  <AmountText :amount="transfer.amount" :language="language" tone="primary" size="lg" />
+                </div>
+            </div>
+          </div>
+        </article>
+        <EmptyStateCard
+          v-if="(balanceResponse?.simplified_debts?.length ?? 0) === 0"
+          :title="strings.allSettledTitle"
+          :subtitle="strings.allSettledSubtitle"
+        />
+      </TransitionGroup>
+    </template>
 
     <SectionHeader :title="strings.memberBalanceTitle" />
     <TransitionGroup name="feature-transition" tag="div" class="list-stack">
@@ -135,40 +166,19 @@ onMounted(async () => {
         </div>
       </article>
     </TransitionGroup>
-
-    <template v-if="simplify">
-      <SectionHeader :title="strings.suggestedPaymentsTitle" />
-      <TransitionGroup name="feature-transition" tag="div" class="list-stack">
-        <article
-          v-for="transfer in balanceResponse?.simplified_debts ?? []"
-          :key="`${transfer.from_member_id}-${transfer.to_member_id}`"
-          class="suggestion-panel"
-          style="cursor: pointer;"
-          @click="goToSuggestedSettlement(transfer)"
-        >
-            <div class="detail-line detail-line--start suggested-payment-row">
-              <div class="page-stack" style="gap: 8px;">
-                <TransferFlow
-                  class="suggested-payment-flow"
-                  :from="memberName(transfer.from_member_id)"
-                  :to="memberName(transfer.to_member_id)"
-                />
-                <AmountText :amount="transfer.amount" :language="language" tone="primary" size="lg" />
-              </div>
-              <div class="action-card__icon suggested-payment-icon" aria-hidden="true">{{ suggestedCardArrow }}</div>
-          </div>
-        </article>
-        <EmptyStateCard
-          v-if="(balanceResponse?.simplified_debts?.length ?? 0) === 0"
-          :title="strings.allSettledTitle"
-          :subtitle="strings.allSettledSubtitle"
-        />
-      </TransitionGroup>
-    </template>
   </div>
 </template>
 
 <style scoped>
+.balances-switch-field {
+  align-items: center;
+}
+
+.balances-switch-field .switch-button {
+  flex: 0 0 auto;
+  align-self: center;
+}
+
 .balance-member-card {
   background:
     linear-gradient(
@@ -242,6 +252,74 @@ onMounted(async () => {
 .suggested-payment-icon {
   direction: ltr;
   unicode-bidi: isolate;
+  flex: 0 0 auto;
+}
+
+.suggested-payment-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  direction: ltr;
+}
+
+.suggested-payment-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  text-align: right;
+}
+
+.suggested-payment-flow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.suggested-payment-flow__party,
+.suggested-payment-flow__arrow {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.suggested-payment-flow__party {
+  font-size: 16px;
+  line-height: 25px;
+  font-weight: 700;
+  min-width: 0;
+  max-width: calc(50% - 18px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggested-payment-flow__arrow {
+  color: var(--color-primary);
+  font-size: 20px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.suggested-payment-amount {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+  direction: ltr;
+}
+
+.suggested-payment-amount :deep(.amount-text) {
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  text-align: end;
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 .suggested-payment-icon {
@@ -249,6 +327,11 @@ onMounted(async () => {
 }
 
 @media (max-width: 640px) {
+  .balances-switch-field {
+    flex-direction: row;
+    align-items: center;
+  }
+
   .balance-member-card__header {
     flex-direction: column;
     align-items: stretch;

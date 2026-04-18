@@ -31,6 +31,7 @@ const expression = ref('')
 const calculatorOpen = ref(false)
 const errorMessage = ref('')
 const inputRef = ref<HTMLInputElement | null>(null)
+const expressionInputRef = ref<HTMLInputElement | null>(null)
 
 const isFa = computed(() => settingsStore.language === 'fa')
 const inputMode = computed(() => (props.mode === 'percent' ? 'decimal' : 'numeric'))
@@ -102,6 +103,7 @@ function openCalculator() {
   expression.value = digitsOnly(props.modelValue)
   errorMessage.value = ''
   calculatorOpen.value = true
+  nextTick(() => focusExpressionInput(countExpressionChars(expression.value)))
 }
 
 function closeCalculator() {
@@ -109,44 +111,86 @@ function closeCalculator() {
   errorMessage.value = ''
 }
 
+function currentExpressionSelection() {
+  const element = expressionInputRef.value
+  const value = formattedExpression.value
+  const start = countExpressionChars(value.slice(0, element?.selectionStart ?? value.length))
+  const end = countExpressionChars(value.slice(0, element?.selectionEnd ?? value.length))
+  return { start, end }
+}
+
+function restoreExpressionSelection(start: number, end = start) {
+  nextTick(() => {
+    const element = expressionInputRef.value
+    if (!element) return
+    const startIndex = selectionIndexForExpressionCharCount(formattedExpression.value, start)
+    const endIndex = selectionIndexForExpressionCharCount(formattedExpression.value, end)
+    element.focus({ preventScroll: true })
+    element.setSelectionRange(startIndex, endIndex)
+  })
+}
+
+function focusExpressionInput(charCount = countExpressionChars(expression.value)) {
+  restoreExpressionSelection(charCount)
+}
+
 function handleToken(token: string) {
   errorMessage.value = ''
   if (token === 'C') {
     expression.value = ''
-    return
-  }
-  if (token === '⌫') {
-    expression.value = expression.value.slice(0, -1)
+    focusExpressionInput(0)
     return
   }
   if (token === '=') {
     applyExpression()
     return
   }
-  expression.value = normalizeExpression(`${expression.value}${token}`)
+
+  const normalized = normalizeExpression(expression.value)
+  const { start, end } = currentExpressionSelection()
+
+  if (token === '⌫') {
+    if (start !== end) {
+      expression.value = `${normalized.slice(0, start)}${normalized.slice(end)}`
+      focusExpressionInput(start)
+      return
+    }
+
+    if (start <= 0) {
+      focusExpressionInput(0)
+      return
+    }
+
+    expression.value = `${normalized.slice(0, start - 1)}${normalized.slice(start)}`
+    focusExpressionInput(start - 1)
+    return
+  }
+
+  expression.value = `${normalized.slice(0, start)}${token}${normalized.slice(end)}`
+  focusExpressionInput(start + token.length)
 }
 
 function updateExpressionInput(event: Event) {
   const element = event.target as HTMLInputElement
   const rawValue = element.value
-  const expressionCharsBeforeCaret = countExpressionChars(rawValue.slice(0, element.selectionStart ?? rawValue.length))
+  const expressionCharsBeforeSelection = countExpressionChars(rawValue.slice(0, element.selectionStart ?? rawValue.length))
+  const expressionCharsAfterSelection = countExpressionChars(rawValue.slice(0, element.selectionEnd ?? rawValue.length))
 
   expression.value = normalizeExpression(rawValue)
   errorMessage.value = ''
 
-  nextTick(() => {
-    const nextCaret = selectionIndexForExpressionCharCount(formattedExpression.value, expressionCharsBeforeCaret)
-    element.setSelectionRange(nextCaret, nextCaret)
-  })
+  restoreExpressionSelection(expressionCharsBeforeSelection, expressionCharsAfterSelection)
 }
 
 function applyExpression() {
   const result = evaluateCalculatorExpression(expression.value)
   if (result === null) {
     errorMessage.value = isFa.value ? 'عبارت ماشین‌حساب معتبر نیست.' : 'The calculator expression is invalid.'
+    focusExpressionInput()
     return
   }
   expression.value = String(result)
+  focusExpressionInput(countExpressionChars(expression.value))
 }
 
 function confirmCalculator() {
@@ -194,7 +238,7 @@ const calculatorRows = [
         :disabled="disabled"
         @input="updateInput"
       />
-      <button class="amount-field__icon-button" type="button" :disabled="disabled" @click="openCalculator">
+      <button class="amount-field__icon-button" type="button" :disabled="disabled" @mousedown.prevent @click="openCalculator">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <rect x="4.5" y="3.5" width="15" height="17" rx="3" />
           <line x1="7.5" y1="8" x2="16.5" y2="8" />
@@ -222,15 +266,19 @@ const calculatorRows = [
             <div class="calculator-display-card">
               <div class="calculator-display-card__label">{{ isFa ? 'عبارت' : 'Expression' }}</div>
               <div class="calculator-display-card__value">{{ displayValue }}</div>
-              <div class="calculator-display-card__expression">{{ displayValue !== expression && expression ? expression : '' }}</div>
+              <div class="calculator-display-card__expression">{{ displayValue !== formattedExpression && expression ? formattedExpression : '' }}</div>
             </div>
 
             <div class="form-field">
               <label class="form-field__label">{{ isFa ? 'عبارت' : 'Expression' }}</label>
               <input
+                ref="expressionInputRef"
                 :value="formattedExpression"
                 class="text-input calculator-expression-input"
                 dir="ltr"
+                autocapitalize="off"
+                autocomplete="off"
+                spellcheck="false"
                 @input="updateExpressionInput"
               />
             </div>
@@ -241,6 +289,7 @@ const calculatorRows = [
                 :key="token"
                 class="outline-button calculator-key"
                 type="button"
+                @mousedown.prevent
                 @click="handleToken(token)"
               >
                 {{ token }}
@@ -278,6 +327,7 @@ const calculatorRows = [
 
 .amount-field__input {
   direction: ltr;
+  unicode-bidi: isolate;
   text-align: start;
   padding-left: 70px;
   padding-right: 18px;
@@ -378,6 +428,7 @@ const calculatorRows = [
   flex-direction: column;
   gap: 8px;
   direction: ltr;
+  unicode-bidi: isolate;
   text-align: end;
   margin-bottom: 14px;
 }
@@ -395,6 +446,7 @@ const calculatorRows = [
 
 .calculator-expression-input {
   direction: ltr;
+  unicode-bidi: isolate;
   text-align: start;
   margin-bottom: 14px;
 }
@@ -402,6 +454,7 @@ const calculatorRows = [
 .calculator-key-row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  direction: ltr;
   gap: 10px;
   margin-bottom: 10px;
 }

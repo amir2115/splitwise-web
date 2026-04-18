@@ -51,7 +51,7 @@ const form = reactive({
   title: '',
   note: '',
   totalAmountInput: '',
-  splitType: 'EQUAL' as 'EQUAL' | 'EXACT',
+  splitType: 'EXACT' as 'EQUAL' | 'EXACT',
   taxEnabled: false,
   taxPercentInput: '',
   serviceCharges: [] as ServiceChargeDraftUi[],

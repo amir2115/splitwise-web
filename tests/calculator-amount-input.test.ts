@@ -68,4 +68,56 @@ describe('CalculatorAmountInput', () => {
 
     expect(input!.value).toBe('12,000+3,000')
   })
+
+  it('keeps focus on the calculator expression input when keypad buttons are clicked', async () => {
+    const wrapper = mount(CalculatorAmountInput, {
+      props: {
+        modelValue: '',
+        label: 'Amount',
+      },
+      attachTo: document.body,
+    })
+
+    await wrapper.get('.amount-field__icon-button').trigger('click')
+
+    const input = document.body.querySelector('.calculator-expression-input') as HTMLInputElement | null
+    expect(input).not.toBeNull()
+
+    input!.focus()
+    input!.setSelectionRange(0, 0)
+
+    const button = Array.from(document.body.querySelectorAll('.calculator-key')).find((item) => item.textContent?.trim() === '7') as
+      | HTMLButtonElement
+      | undefined
+    expect(button).toBeDefined()
+
+    button!.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }))
+    button!.click()
+    await wrapper.vm.$nextTick()
+
+    expect(document.activeElement).toBe(input)
+    expect(input!.value).toBe('7')
+  })
+
+  it('keeps keypad operators on the right in persian mode and keeps expression input ltr', async () => {
+    window.localStorage.setItem('offline-splitwise.language', 'fa')
+
+    const wrapper = mount(CalculatorAmountInput, {
+      props: {
+        modelValue: '',
+        label: 'مبلغ',
+      },
+      attachTo: document.body,
+    })
+
+    await wrapper.get('.amount-field__icon-button').trigger('click')
+
+    const expressionInput = document.body.querySelector('.calculator-expression-input') as HTMLInputElement | null
+    expect(expressionInput?.getAttribute('dir')).toBe('ltr')
+
+    const firstOperatorRow = Array.from(document.body.querySelectorAll('.calculator-key-row'))[1]
+    const tokens = Array.from(firstOperatorRow.querySelectorAll('.calculator-key')).map((item) => item.textContent?.trim())
+
+    expect(tokens).toEqual(['7', '8', '9', '/'])
+  })
 })

@@ -33,6 +33,8 @@ const balancesStore = useBalancesStore()
 const settingsStore = useSettingsStore()
 const snackbarStore = useSnackbarStore()
 const pageLoading = ref(true)
+const expensesExpanded = ref(false)
+const settlementsExpanded = ref(false)
 
 const { strings, language } = storeToRefs(settingsStore)
 const { groups } = storeToRefs(groupsStore)
@@ -49,6 +51,15 @@ const expenses = computed(() => expensesByGroupId.value[groupId] ?? [])
 const settlements = computed(() => settlementsByGroupId.value[groupId] ?? [])
 const hasLoadedGroupData = computed(() => !pageLoading.value)
 const canCreateTransactions = computed(() => hasLoadedGroupData.value && members.value.length >= 2)
+const initialVisibleItems = 3
+const visibleExpenses = computed(() => (expensesExpanded.value ? expenses.value : expenses.value.slice(0, initialVisibleItems)))
+const visibleSettlements = computed(() =>
+  settlementsExpanded.value ? settlements.value : settlements.value.slice(0, initialVisibleItems),
+)
+const canExpandExpenses = computed(() => expenses.value.length > initialVisibleItems)
+const canExpandSettlements = computed(() => settlements.value.length > initialVisibleItems)
+const showMoreLabel = computed(() => (language.value === 'fa' ? 'مشاهده بیشتر' : 'Show more'))
+const showLessLabel = computed(() => (language.value === 'fa' ? 'بستن' : 'Show less'))
 
 const summaryItems = computed(() => {
   const openBalancesMembers = new Set<string>()
@@ -164,7 +175,7 @@ function openSettlementEditor() {
     <SectionHeader :title="strings.recentExpensesTitle" />
     <TransitionGroup name="feature-transition" tag="div" class="list-stack">
       <article
-        v-for="expense in expenses.slice(0, 8)"
+        v-for="expense in visibleExpenses"
         :key="expense.id"
         class="surface-card surface-card--flat"
         style="cursor: pointer;"
@@ -187,10 +198,15 @@ function openSettlementEditor() {
       </article>
       <EmptyStateCard v-if="expenses.length === 0" :title="strings.noExpensesTitle" :subtitle="strings.noExpensesSubtitle" />
     </TransitionGroup>
+    <div v-if="canExpandExpenses" class="dashboard-more-row">
+      <button class="outline-button dashboard-more-button" type="button" @click="expensesExpanded = !expensesExpanded">
+        {{ expensesExpanded ? showLessLabel : showMoreLabel }}
+      </button>
+    </div>
 
     <SectionHeader :title="strings.recentSettlementsTitle" />
     <TransitionGroup name="feature-transition" tag="div" class="list-stack">
-      <article v-for="settlement in settlements.slice(0, 8)" :key="settlement.id" class="surface-card surface-card--flat">
+      <article v-for="settlement in visibleSettlements" :key="settlement.id" class="surface-card surface-card--flat">
         <div class="detail-line detail-line--start">
           <TransferFlow
             class="page-topbar__title"
@@ -212,10 +228,25 @@ function openSettlementEditor() {
       </article>
       <EmptyStateCard v-if="settlements.length === 0" :title="strings.noSettlementsTitle" :subtitle="strings.noSettlementsSubtitle" />
     </TransitionGroup>
+    <div v-if="canExpandSettlements" class="dashboard-more-row">
+      <button class="outline-button dashboard-more-button" type="button" @click="settlementsExpanded = !settlementsExpanded">
+        {{ settlementsExpanded ? showLessLabel : showMoreLabel }}
+      </button>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.dashboard-more-row {
+  display: flex;
+  justify-content: center;
+  margin-top: -4px;
+}
+
+.dashboard-more-button {
+  min-width: 132px;
+}
+
 .skeleton-line {
   border-radius: 999px;
   background: linear-gradient(
