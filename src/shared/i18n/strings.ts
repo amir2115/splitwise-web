@@ -24,10 +24,37 @@ export interface AppStrings {
   usernameRequired: string
   passwordRequired: string
   passwordTooShort: string
+  showPasswordLabel: string
+  hidePasswordLabel: string
   currentPasswordLabel: string
   currentPasswordRequired: string
   currentPasswordInvalid: string
   newPasswordLabel: string
+  phoneVerificationTitle: string
+  phoneVerificationSubtitle: string
+  phoneVerificationPhoneLabel: string
+  phoneVerificationPhonePlaceholder: string
+  phoneVerificationRequestAction: string
+  phoneVerificationRequestLoading: string
+  phoneVerificationCodeLabel: string
+  phoneVerificationCodeSubtitle: string
+  phoneVerificationVerifiedSubtitle: string
+  phoneVerificationVerifyAction: string
+  phoneVerificationVerifyLoading: string
+  phoneVerificationChangePhoneAction: string
+  phoneVerificationResendAction: string
+  phoneVerificationResendLoading: string
+  phoneVerificationResendCountdown: string
+  phoneVerificationCodeSent: string
+  phoneVerificationInvalidPhone: string
+  phoneVerificationPhoneTaken: string
+  phoneVerificationRateLimited: string
+  phoneVerificationCodeInvalid: string
+  phoneVerificationCodeExpired: string
+  phoneVerificationCodeNotFound: string
+  phoneVerificationAttemptsExceeded: string
+  phoneVerificationNotConfigured: string
+  phoneVerificationSmsFailed: string
   changePasswordTitle: string
   changePasswordSubtitle: string
   changePasswordAction: string
@@ -45,6 +72,43 @@ export interface AppStrings {
   passwordLabel: string
   loginAction: string
   registerAction: string
+  forgotPasswordAction: string
+  forgotPasswordTitle: string
+  forgotPasswordSubtitle: string
+  forgotPasswordIdentifierLabel: string
+  forgotPasswordIdentifierPlaceholder: string
+  forgotPasswordRequestAction: string
+  forgotPasswordRequestLoading: string
+  forgotPasswordCodeTitle: string
+  forgotPasswordCodeSubtitle: string
+  forgotPasswordVerifyAction: string
+  forgotPasswordVerifyLoading: string
+  forgotPasswordResetTitle: string
+  forgotPasswordResetSubtitle: string
+  forgotPasswordConfirmAction: string
+  forgotPasswordConfirmLoading: string
+  forgotPasswordConfirmPasswordLabel: string
+  forgotPasswordPasswordMismatch: string
+  forgotPasswordIdentifierRequired: string
+  forgotPasswordCodeInvalid: string
+  forgotPasswordCodeExpired: string
+  forgotPasswordCodeNotFound: string
+  forgotPasswordAttemptsExceeded: string
+  forgotPasswordAccountNotFound: string
+  forgotPasswordPhoneMissing: string
+  forgotPasswordTokenInvalid: string
+  forgotPasswordRequestFailed: string
+  invitedAccountTitle: string
+  invitedAccountSubtitle: string
+  invitedAccountCodeTitle: string
+  invitedAccountCodeSubtitle: string
+  invitedAccountResetTitle: string
+  invitedAccountResetSubtitle: string
+  invitedAccountPreparingLoading: string
+  invitedAccountRequestFailed: string
+  invitedAccountTokenInvalid: string
+  invitedAccountPhoneMissing: string
+  invitedAccountPhoneUnverified: string
   continueOfflineAction: string
   goToRegister: string
   goToLogin: string
@@ -187,6 +251,9 @@ export interface AppStrings {
   accountTitle: string
   accountGuestSubtitle: string
   accountSignedInAs: string
+  accountPhoneLabel: string
+  accountPhoneVerifiedLabel: string
+  accountPhoneUnverifiedLabel: string
   syncTitle: string
   syncSubtitle: string
   syncOnline: string
@@ -256,10 +323,37 @@ const fa: AppStrings = {
   usernameRequired: 'نام کاربری را وارد کن.',
   passwordRequired: 'رمز عبور را وارد کن.',
   passwordTooShort: 'رمز عبور باید حداقل ۸ کاراکتر باشد.',
+  showPasswordLabel: 'نمایش رمز عبور',
+  hidePasswordLabel: 'پنهان کردن رمز عبور',
   currentPasswordLabel: 'رمز عبور فعلی',
   currentPasswordRequired: 'رمز عبور فعلی را وارد کن.',
   currentPasswordInvalid: 'رمز عبور فعلی درست نیست.',
   newPasswordLabel: 'رمز عبور جدید',
+  phoneVerificationTitle: 'تاییدیه شماره تلفن',
+  phoneVerificationSubtitle: 'برای عملکرد سایت باید شماره تلفنت را وارد کنی.',
+  phoneVerificationPhoneLabel: 'شماره موبایل',
+  phoneVerificationPhonePlaceholder: '09120000000',
+  phoneVerificationRequestAction: 'ارسال کد تایید',
+  phoneVerificationRequestLoading: 'در حال ارسال کد...',
+  phoneVerificationCodeLabel: 'کد تایید ارسال شده را وارد کن',
+  phoneVerificationCodeSubtitle: 'برای استفاده از امکانات جدید سایت باید شماره تلفنت رو وارد کنی.',
+  phoneVerificationVerifiedSubtitle: 'لطفا کد تایید ارسال‌شده را وارد کن.',
+  phoneVerificationVerifyAction: 'تایید شماره تلفن',
+  phoneVerificationVerifyLoading: 'در حال تایید...',
+  phoneVerificationChangePhoneAction: 'تعویض شماره تلفن',
+  phoneVerificationResendAction: 'ارسال مجدد کد',
+  phoneVerificationResendLoading: 'در حال ارسال مجدد...',
+  phoneVerificationResendCountdown: 'ارسال مجدد تا {seconds} ثانیه دیگر',
+  phoneVerificationCodeSent: 'کد تایید برای شماره واردشده ارسال شد.',
+  phoneVerificationInvalidPhone: 'شماره موبایل معتبر نیست.',
+  phoneVerificationPhoneTaken: 'این شماره موبایل قبلا ثبت شده است.',
+  phoneVerificationRateLimited: 'کمی صبر کن و دوباره برای دریافت کد تلاش کن.',
+  phoneVerificationCodeInvalid: 'کد تایید واردشده درست نیست.',
+  phoneVerificationCodeExpired: 'زمان این کد تمام شده است.',
+  phoneVerificationCodeNotFound: 'کد تاییدی برای این شماره پیدا نشد.',
+  phoneVerificationAttemptsExceeded: 'تعداد تلاش‌های وارد کردن کد بیش از حد مجاز شد.',
+  phoneVerificationNotConfigured: 'امکان تایید شماره تلفن فعلا فعال نیست.',
+  phoneVerificationSmsFailed: 'ارسال پیامک انجام نشد. دوباره تلاش کن.',
   changePasswordTitle: 'تغییر رمز عبور',
   changePasswordSubtitle: 'برای ادامه باید رمز عبور اولیه را عوض کنی.',
   changePasswordAction: 'ثبت رمز جدید',
@@ -277,6 +371,43 @@ const fa: AppStrings = {
   passwordLabel: 'رمز عبور',
   loginAction: 'ورود',
   registerAction: 'ساخت حساب',
+  forgotPasswordAction: 'فراموشی رمز عبور',
+  forgotPasswordTitle: 'بازیابی رمز عبور',
+  forgotPasswordSubtitle: 'نام کاربری یا شماره موبایل را وارد کن تا کد تایید برای حساب تو ارسال شود.',
+  forgotPasswordIdentifierLabel: 'نام کاربری یا شماره موبایل',
+  forgotPasswordIdentifierPlaceholder: 'مثلا ali_user یا 09120000000',
+  forgotPasswordRequestAction: 'ارسال کد بازیابی',
+  forgotPasswordRequestLoading: 'در حال ارسال کد...',
+  forgotPasswordCodeTitle: 'تایید کد پیامک',
+  forgotPasswordCodeSubtitle: 'کد ۵ رقمی ارسال‌شده را وارد کن.',
+  forgotPasswordVerifyAction: 'تایید کد',
+  forgotPasswordVerifyLoading: 'در حال بررسی کد...',
+  forgotPasswordResetTitle: 'رمز جدید را وارد کن',
+  forgotPasswordResetSubtitle: 'بعد از ثبت رمز جدید مستقیم وارد حساب می‌شوی.',
+  forgotPasswordConfirmAction: 'ثبت رمز جدید',
+  forgotPasswordConfirmLoading: 'در حال تغییر رمز...',
+  forgotPasswordConfirmPasswordLabel: 'تکرار رمز جدید',
+  forgotPasswordPasswordMismatch: 'رمز جدید و تکرار آن یکسان نیستند.',
+  forgotPasswordIdentifierRequired: 'نام کاربری یا شماره موبایل را وارد کن.',
+  forgotPasswordCodeInvalid: 'کد بازیابی درست نیست.',
+  forgotPasswordCodeExpired: 'زمان کد بازیابی تمام شده است.',
+  forgotPasswordCodeNotFound: 'کد بازیابی پیدا نشد. دوباره درخواست بده.',
+  forgotPasswordAttemptsExceeded: 'تعداد تلاش برای کد بازیابی بیش از حد مجاز شد.',
+  forgotPasswordAccountNotFound: 'حسابی با این نام کاربری یا شماره موبایل پیدا نشد.',
+  forgotPasswordPhoneMissing: 'برای این حساب شماره تلفنی ثبت نشده است. لطفا با پشتیبانی در ارتباط باش.',
+  forgotPasswordTokenInvalid: 'نشست بازیابی رمز معتبر نیست. دوباره از ابتدا شروع کن.',
+  forgotPasswordRequestFailed: 'بازیابی رمز عبور انجام نشد.',
+  invitedAccountTitle: 'تکمیل ثبت‌نام',
+  invitedAccountSubtitle: 'برای فعال شدن حساب دعوتی، شماره تلفن را تایید کن و رمز عبورت را بساز.',
+  invitedAccountCodeTitle: 'تایید شماره تلفن',
+  invitedAccountCodeSubtitle: 'کد تایید ارسال‌شده به شماره ثبت‌شده را وارد کن.',
+  invitedAccountResetTitle: 'تعیین رمز عبور',
+  invitedAccountResetSubtitle: 'بعد از ثبت رمز جدید مستقیم وارد حساب می‌شوی.',
+  invitedAccountPreparingLoading: 'در حال آماده‌سازی...',
+  invitedAccountRequestFailed: 'ورود به مسیر تکمیل ثبت‌نام انجام نشد.',
+  invitedAccountTokenInvalid: 'لینک تکمیل ثبت‌نام معتبر نیست یا منقضی شده است.',
+  invitedAccountPhoneMissing: 'برای این حساب شماره تلفنی ثبت نشده است.',
+  invitedAccountPhoneUnverified: 'اول شماره تلفن این حساب را تایید کن.',
   continueOfflineAction: 'فعلاً آفلاین ادامه می‌دهم',
   goToRegister: 'حساب نداری؟ ثبت‌نام کن',
   goToLogin: 'حساب داری؟ وارد شو',
@@ -419,6 +550,9 @@ const fa: AppStrings = {
   accountTitle: 'حساب',
   accountGuestSubtitle: 'برای همگام‌سازی وارد حساب خودت شو.',
   accountSignedInAs: 'وارد شده با',
+  accountPhoneLabel: 'شماره تلفن',
+  accountPhoneVerifiedLabel: 'تایید شده',
+  accountPhoneUnverifiedLabel: 'تایید نشده',
   syncTitle: 'همگام‌سازی',
   syncSubtitle: 'وضعیت اتصال و به‌روزرسانی اپ را از اینجا بررسی کن.',
   syncOnline: 'آنلاین',
@@ -488,10 +622,37 @@ const en: AppStrings = {
   usernameRequired: 'Enter a username.',
   passwordRequired: 'Enter a password.',
   passwordTooShort: 'Password must be at least 8 characters.',
+  showPasswordLabel: 'Show password',
+  hidePasswordLabel: 'Hide password',
   currentPasswordLabel: 'Current password',
   currentPasswordRequired: 'Enter your current password.',
   currentPasswordInvalid: 'Current password is incorrect.',
   newPasswordLabel: 'New password',
+  phoneVerificationTitle: 'Phone verification',
+  phoneVerificationSubtitle: 'You must enter your phone number to keep using the website.',
+  phoneVerificationPhoneLabel: 'Mobile number',
+  phoneVerificationPhonePlaceholder: '09120000000',
+  phoneVerificationRequestAction: 'Send verification code',
+  phoneVerificationRequestLoading: 'Sending code...',
+  phoneVerificationCodeLabel: 'Enter the sent verification code',
+  phoneVerificationCodeSubtitle: 'Enter your phone number to use the latest features of the website.',
+  phoneVerificationVerifiedSubtitle: 'Please enter the verification code that was sent to you.',
+  phoneVerificationVerifyAction: 'Verify phone number',
+  phoneVerificationVerifyLoading: 'Verifying...',
+  phoneVerificationChangePhoneAction: 'Change phone number',
+  phoneVerificationResendAction: 'Resend code',
+  phoneVerificationResendLoading: 'Resending...',
+  phoneVerificationResendCountdown: 'Resend available in {seconds}s',
+  phoneVerificationCodeSent: 'The verification code has been sent.',
+  phoneVerificationInvalidPhone: 'Enter a valid mobile number.',
+  phoneVerificationPhoneTaken: 'This phone number is already registered.',
+  phoneVerificationRateLimited: 'Please wait before requesting another code.',
+  phoneVerificationCodeInvalid: 'The verification code is invalid.',
+  phoneVerificationCodeExpired: 'This verification code has expired.',
+  phoneVerificationCodeNotFound: 'No verification code was found for this number.',
+  phoneVerificationAttemptsExceeded: 'Too many verification attempts were used.',
+  phoneVerificationNotConfigured: 'Phone verification is not available right now.',
+  phoneVerificationSmsFailed: 'The SMS could not be sent. Please try again.',
   changePasswordTitle: 'Change password',
   changePasswordSubtitle: 'You need to replace the temporary password before using the app.',
   changePasswordAction: 'Save new password',
@@ -509,6 +670,43 @@ const en: AppStrings = {
   passwordLabel: 'Password',
   loginAction: 'Login',
   registerAction: 'Create account',
+  forgotPasswordAction: 'Forgot password?',
+  forgotPasswordTitle: 'Reset password',
+  forgotPasswordSubtitle: 'Enter your username or mobile number to receive a verification code.',
+  forgotPasswordIdentifierLabel: 'Username or mobile number',
+  forgotPasswordIdentifierPlaceholder: 'For example ali_user or 09120000000',
+  forgotPasswordRequestAction: 'Send reset code',
+  forgotPasswordRequestLoading: 'Sending reset code...',
+  forgotPasswordCodeTitle: 'Verify the SMS code',
+  forgotPasswordCodeSubtitle: 'Enter the 5-digit code that was sent to you.',
+  forgotPasswordVerifyAction: 'Verify code',
+  forgotPasswordVerifyLoading: 'Checking code...',
+  forgotPasswordResetTitle: 'Set a new password',
+  forgotPasswordResetSubtitle: 'After saving the new password you will be signed in automatically.',
+  forgotPasswordConfirmAction: 'Save new password',
+  forgotPasswordConfirmLoading: 'Updating password...',
+  forgotPasswordConfirmPasswordLabel: 'Confirm new password',
+  forgotPasswordPasswordMismatch: 'The new password confirmation does not match.',
+  forgotPasswordIdentifierRequired: 'Enter your username or mobile number.',
+  forgotPasswordCodeInvalid: 'The reset code is invalid.',
+  forgotPasswordCodeExpired: 'The reset code has expired.',
+  forgotPasswordCodeNotFound: 'No reset code was found. Request a new one.',
+  forgotPasswordAttemptsExceeded: 'Too many reset code attempts were used.',
+  forgotPasswordAccountNotFound: 'No account was found for this username or mobile number.',
+  forgotPasswordPhoneMissing: 'This account has no phone number on file. Please contact support.',
+  forgotPasswordTokenInvalid: 'The reset session is no longer valid. Start again.',
+  forgotPasswordRequestFailed: 'The password reset flow failed.',
+  invitedAccountTitle: 'Complete your account',
+  invitedAccountSubtitle: 'Verify the phone number and choose a password to activate this invited account.',
+  invitedAccountCodeTitle: 'Verify phone number',
+  invitedAccountCodeSubtitle: 'Enter the verification code sent to the saved phone number.',
+  invitedAccountResetTitle: 'Choose a password',
+  invitedAccountResetSubtitle: 'After saving the new password you will be signed in automatically.',
+  invitedAccountPreparingLoading: 'Preparing...',
+  invitedAccountRequestFailed: 'Opening the account completion flow failed.',
+  invitedAccountTokenInvalid: 'This account completion link is invalid or expired.',
+  invitedAccountPhoneMissing: 'No phone number is saved for this invited account.',
+  invitedAccountPhoneUnverified: 'Verify the phone number before completing the account.',
   continueOfflineAction: 'Continue offline for now',
   goToRegister: 'No account? Register',
   goToLogin: 'Already have an account? Login',
@@ -651,6 +849,9 @@ const en: AppStrings = {
   accountTitle: 'Account',
   accountGuestSubtitle: 'Sign in to keep your data in sync.',
   accountSignedInAs: 'Signed in as',
+  accountPhoneLabel: 'Phone number',
+  accountPhoneVerifiedLabel: 'Verified',
+  accountPhoneUnverifiedLabel: 'Unverified',
   syncTitle: 'Sync',
   syncSubtitle: 'Review connection and update status here.',
   syncOnline: 'Online',

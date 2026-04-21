@@ -8,6 +8,8 @@ export interface User {
   id: string
   name: string
   username: string
+  phone_number: string | null
+  is_phone_verified: boolean
   must_change_password: boolean
   created_at: string
   updated_at: string
@@ -28,10 +30,98 @@ export interface UserCreateByInviterRequest {
   name: string
   username: string
   password: string
+  phone_number?: string | null
+}
+
+export interface RegisterRequest {
+  name: string
+  username: string
+  password: string
+  phone_number: string
+}
+
+export interface RegisterRequestResponse {
+  registration_id: string
+  phone_number: string
+  expires_in_seconds: number
+  resend_available_in_seconds: number
+  message_id: number | null
+}
+
+export interface RegisterVerifyRequest {
+  registration_id: string
+  code: string
+}
+
+export interface RegisterResendRequest {
+  registration_id: string
 }
 
 export interface ChangePasswordRequest {
   current_password: string
+  new_password: string
+}
+
+export interface PhoneVerificationRequest {
+  phone_number: string
+}
+
+export interface PhoneVerificationRequestResponse {
+  phone_number: string
+  expires_in_seconds: number
+  resend_available_in_seconds: number
+  message_id: number | null
+}
+
+export interface PhoneVerificationConfirmRequest {
+  phone_number: string
+  code: string
+}
+
+export interface PasswordResetRequest {
+  identifier: string
+}
+
+export interface PasswordResetRequestResponse {
+  masked_phone_number: string | null
+  expires_in_seconds: number
+  resend_available_in_seconds: number
+  message_id: number | null
+}
+
+export interface PasswordResetVerifyRequest {
+  identifier: string
+  code: string
+}
+
+export interface PasswordResetVerifyResponse {
+  reset_token: string
+}
+
+export interface PasswordResetConfirmRequest {
+  reset_token: string
+  new_password: string
+}
+
+export interface InvitedAccountRequest {
+  token: string
+}
+
+export interface InvitedAccountRequestResponse {
+  requires_phone_verification: boolean
+  masked_phone_number: string | null
+  expires_in_seconds: number | null
+  resend_available_in_seconds: number | null
+  message_id: number | null
+}
+
+export interface InvitedAccountVerifyPhoneRequest {
+  token: string
+  code: string
+}
+
+export interface InvitedAccountCompleteRequest {
+  token: string
   new_password: string
 }
 
@@ -40,6 +130,7 @@ export interface InlineMemberCreateRequest {
   name: string
   username: string
   password: string
+  phone_number?: string | null
   is_archived: boolean
 }
 

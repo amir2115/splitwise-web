@@ -27,6 +27,11 @@ const accountLabel = computed(() => {
     : `@${user.value.username}`
 })
 
+const phoneVerificationLabel = computed(() => {
+  if (!user.value?.phone_number) return null
+  return user.value.is_phone_verified ? strings.value.accountPhoneVerifiedLabel : strings.value.accountPhoneUnverifiedLabel
+})
+
 const syncStatusText = computed(() => {
   if (!canSync.value) return strings.value.signInLabel
   return effectiveOnline.value ? strings.value.syncOnline : strings.value.syncOffline
@@ -78,6 +83,12 @@ function signIn() {
           <div class="settings-account-meta">
             <strong>{{ accountLabel }}</strong>
             <span v-if="user" class="muted">{{ strings.accountSignedInAs }}</span>
+            <span v-if="user?.phone_number" class="muted settings-account-phone">
+              {{ strings.accountPhoneLabel }}: {{ user.phone_number }}
+            </span>
+            <span v-if="phoneVerificationLabel" class="muted settings-account-verification">
+              {{ phoneVerificationLabel }}
+            </span>
           </div>
           <button v-if="user" class="outline-button is-danger settings-logout-button" type="button" @click="signOut">
             {{ strings.logoutLabel }}
@@ -254,6 +265,22 @@ function signIn() {
   font-size: 22px;
   line-height: 1;
   align-self: center;
+}
+
+.settings-account-phone {
+  direction: ltr;
+  unicode-bidi: plaintext;
+  font-variant-numeric: tabular-nums;
+}
+
+.settings-account-verification {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
 }
 
 @media (max-width: 560px) {

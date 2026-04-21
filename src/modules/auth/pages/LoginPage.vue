@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/shared/stores/auth'
 import { useSettingsStore } from '@/shared/stores/settings'
 import HeroCard from '@/shared/components/HeroCard.vue'
+import PasswordField from '@/shared/components/PasswordField.vue'
 import { ApiError } from '@/shared/api/client'
 
 const authStore = useAuthStore()
@@ -75,7 +76,13 @@ function resolveAuthError(error: unknown, isRegister: boolean, appStrings: typeo
       </div>
       <div class="form-field">
         <label class="form-field__label">{{ strings.passwordLabel }}</label>
-        <input v-model="form.password" class="text-input" type="password" autocomplete="current-password" :disabled="isSubmitting" />
+        <PasswordField
+          v-model="form.password"
+          autocomplete="current-password"
+          :disabled="isSubmitting"
+          :show-label="strings.showPasswordLabel"
+          :hide-label="strings.hidePasswordLabel"
+        />
       </div>
       <Transition name="auth-error-transition">
         <div v-if="errorMessage" class="auth-alert auth-alert--error" role="alert">

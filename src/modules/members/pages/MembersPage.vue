@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import { ApiError } from '@/shared/api/client'
 import BaseModal from '@/shared/components/BaseModal.vue'
 import EmptyStateCard from '@/shared/components/EmptyStateCard.vue'
+import PasswordField from '@/shared/components/PasswordField.vue'
 import PageTopBar from '@/shared/components/PageTopBar.vue'
 import { useGroupsStore } from '@/modules/groups/store'
 import { MIN_MEMBER_SUGGESTION_QUERY_LENGTH, normalizeMemberSuggestionQuery, useMemberSuggestions } from '@/modules/members/memberSuggestions'
@@ -53,16 +54,22 @@ const shouldShowSuggestionHint = computed(
   () => isCreateMode.value && normalizedMemberQuery.value.length < MIN_MEMBER_SUGGESTION_QUERY_LENGTH,
 )
 const shouldShowNoSuggestionResults = computed(
-    () =>
+  () =>
     isCreateMode.value &&
+    !isInlineCreateMode.value &&
     normalizedMemberQuery.value.length >= MIN_MEMBER_SUGGESTION_QUERY_LENGTH &&
     hasResolvedQuery.value &&
     !isSuggestionLoading.value &&
     !memberSuggestionError.value &&
     suggestions.value.length === 0,
 )
+const shouldShowInlineCreateAction = computed(
+  () => (isCreateMode.value && shouldShowNoSuggestionResults.value) || (isInlineCreateMode.value && isCreateMode.value),
+)
+const modalPrimaryActionLabel = computed(() => (shouldShowInlineCreateAction.value ? strings.value.memberCreateAction : strings.value.save))
 const inlineCreateName = ref('')
 const inlineCreatePassword = ref('')
+const inlineCreatePhoneNumber = ref('')
 const inlineCreateError = ref('')
 const isInlineCreateSubmitting = ref(false)
 const isModalBusy = computed(() => isInlineCreateSubmitting.value)
@@ -85,6 +92,7 @@ function openCreate() {
   memberUsername.value = ''
   inlineCreateName.value = ''
   inlineCreatePassword.value = ''
+  inlineCreatePhoneNumber.value = ''
   inlineCreateError.value = ''
   isInlineCreateMode.value = false
   dismissSuggestions()
@@ -101,6 +109,7 @@ function closeModal() {
   memberUsername.value = ''
   inlineCreateName.value = ''
   inlineCreatePassword.value = ''
+  inlineCreatePhoneNumber.value = ''
   inlineCreateError.value = ''
   isInlineCreateMode.value = false
   dismissSuggestions()
@@ -167,7 +176,8 @@ async function createOrPromptMember() {
     if (isUsernameNotFoundError(error)) {
       isInlineCreateMode.value = true
       inlineCreateError.value = ''
-      inlineCreateName.value = inlineCreateName.value || memberUsername.value.trim()
+      inlineCreateName.value = ''
+      dismissSuggestions()
       return false
     }
     throw error
@@ -201,9 +211,13 @@ async function createMissingUserAndAddMember() {
       name: inlineCreateName.value.trim(),
       username: memberUsername.value.trim(),
       password: inlineCreatePassword.value,
+      phone_number: inlineCreatePhoneNumber.value.trim() || null,
       is_archived: false,
     })
-    snackbarStore.push(response.outcome === 'added' ? strings.value.memberCreateSuccess : strings.value.pendingInviteLabel, response.outcome === 'added' ? 'success' : 'info')
+    const successMessage = inlineCreatePhoneNumber.value.trim()
+      ? `${strings.value.memberCreateSuccess} پیامک تکمیل ثبت‌نام ارسال شد.`
+      : strings.value.memberCreateSuccess
+    snackbarStore.push(response.outcome === 'added' ? successMessage : strings.value.pendingInviteLabel, response.outcome === 'added' ? 'success' : 'info')
     closeModal()
   } catch (error) {
     inlineCreateError.value = resolveInlineCreateError(error)
@@ -278,7 +292,7 @@ async function removeMember(id: string) {
   </div>
 
   <BaseModal v-if="modalMemberId !== null" :title="modalMemberId ? strings.editMember : strings.addMember" @close="closeModal">
-    <div class="form-field">
+    <div v-if="!(isInlineCreateMode && isCreateMode)" class="form-field">
       <label class="form-field__label">{{ strings.memberPlaceholder }}</label>
       <div class="member-suggestion-field">
         <input
@@ -294,9 +308,6 @@ async function removeMember(id: string) {
           @keydown="onMemberInputKeydown"
         />
         <div v-if="isCreateMode" class="member-suggestion-panel">
-          <p class="member-suggestion-state">
-            {{ strings.memberCreatePromptSubtitle }}
-          </p>
           <p v-if="shouldShowSuggestionHint" class="member-suggestion-state">
             {{ strings.memberSuggestionHint }}
           </p>
@@ -306,9 +317,10 @@ async function removeMember(id: string) {
           <p v-else-if="memberSuggestionError" class="member-suggestion-state member-suggestion-state--error">
             {{ strings.memberSuggestionError }}
           </p>
-          <p v-else-if="shouldShowNoSuggestionResults" class="member-suggestion-state">
-            {{ strings.memberSuggestionEmpty }}
-          </p>
+          <div v-else-if="shouldShowNoSuggestionResults" class="member-inline-create__info">
+            <strong>{{ strings.memberCreatePromptTitle }}</strong>
+            <p>{{ strings.memberCreatePromptSubtitle }}</p>
+          </div>
           <div v-else-if="suggestions.length > 0" class="member-suggestion-list" role="listbox">
             <button
               v-for="(suggestion, index) in suggestions"
@@ -327,10 +339,6 @@ async function removeMember(id: string) {
       </div>
     </div>
     <div v-if="isInlineCreateMode && isCreateMode" class="member-inline-create">
-      <div class="member-inline-create__header">
-        <strong>{{ strings.memberCreatePromptTitle }}</strong>
-        <p>{{ strings.memberCreatePromptSubtitle }}</p>
-      </div>
       <div class="form-field">
         <label class="form-field__label">{{ strings.memberCreateNameLabel }}</label>
         <input v-model="inlineCreateName" class="text-input" type="text" :disabled="isModalBusy" />
@@ -340,8 +348,26 @@ async function removeMember(id: string) {
         <input v-model="memberUsername" class="text-input" type="text" autocapitalize="off" :disabled="isModalBusy" />
       </div>
       <div class="form-field">
+        <label class="form-field__label">{{ strings.accountPhoneLabel }} (اختیاری)</label>
+        <input
+          v-model.trim="inlineCreatePhoneNumber"
+          class="text-input"
+          type="text"
+          inputmode="numeric"
+          autocomplete="tel"
+          placeholder="09120000000"
+          :disabled="isModalBusy"
+        />
+      </div>
+      <div class="form-field">
         <label class="form-field__label">{{ strings.memberCreatePasswordLabel }}</label>
-        <input v-model="inlineCreatePassword" class="text-input" type="password" :disabled="isModalBusy" />
+        <PasswordField
+          v-model="inlineCreatePassword"
+          autocomplete="new-password"
+          :disabled="isModalBusy"
+          :show-label="strings.showPasswordLabel"
+          :hide-label="strings.hidePasswordLabel"
+        />
       </div>
       <button class="outline-button member-inline-create__default" type="button" :disabled="isModalBusy" @click="fillDefaultPassword">
         {{ strings.memberCreateDefaultPassword }}
@@ -357,7 +383,7 @@ async function removeMember(id: string) {
         :disabled="isModalBusy"
         @click="isInlineCreateMode && isCreateMode ? createMissingUserAndAddMember() : saveMember()"
       >
-        {{ isInlineCreateMode && isCreateMode ? strings.memberCreateAction : strings.save }}
+        {{ modalPrimaryActionLabel }}
       </button>
     </div>
   </BaseModal>
@@ -423,19 +449,23 @@ async function removeMember(id: string) {
   padding-top: 6px;
 }
 
-.member-inline-create__header {
-  display: grid;
-  gap: 6px;
+.member-inline-create__default {
+  width: 100%;
 }
 
-.member-inline-create__header p {
+.member-inline-create__info {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--color-border));
+}
+
+.member-inline-create__info p {
   margin: 0;
   color: var(--color-text-secondary);
   font-size: 13px;
   line-height: 1.5;
-}
-
-.member-inline-create__default {
-  width: 100%;
 }
 </style>

@@ -19,6 +19,8 @@ export const router = createRouter({
     { path: '/auth', redirect: '/auth/login' },
     { path: '/auth/login', component: AuthPage, meta: { guestOnly: true, authMode: 'login' } },
     { path: '/auth/register', component: AuthPage, meta: { guestOnly: true, authMode: 'register' } },
+    { path: '/auth/forgot-password', component: ChangePasswordPage, meta: { guestOnly: true, authMode: 'forgot-password' } },
+    { path: '/auth/complete-account', component: ChangePasswordPage, meta: { guestOnly: true, authMode: 'invited-account' } },
     { path: '/auth/change-password', component: ChangePasswordPage, meta: { requiresAuth: true, passwordChangeOnly: true } },
     { path: '/groups', component: GroupsPage, meta: { requiresAuth: true, topLevel: true, allowGuest: true } },
     { path: '/groups/:groupId', component: GroupDashboardPage, meta: { requiresAuth: true } },
