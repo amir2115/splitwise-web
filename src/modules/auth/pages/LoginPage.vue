@@ -51,8 +51,10 @@ function resolveAuthError(error: unknown, isRegister: boolean, appStrings: typeo
   if (error instanceof TypeError) return appStrings.networkError
 
   if (error instanceof ApiError) {
+    const payload = error.payload as { error?: { code?: string } }
+    const code = payload?.error?.code
     const message = error.message.toLowerCase()
-    if (!isRegister && error.status === 401) return appStrings.invalidCredentials
+    if (!isRegister && (code === 'invalid_credentials' || error.status === 401)) return appStrings.invalidCredentials
     if (
       message.includes('failed to fetch') ||
       message.includes('network') ||

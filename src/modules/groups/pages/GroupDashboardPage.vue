@@ -10,13 +10,16 @@ import SummaryGrid from '@/shared/components/SummaryGrid.vue'
 import EmptyStateCard from '@/shared/components/EmptyStateCard.vue'
 import AmountText from '@/shared/components/AmountText.vue'
 import TransferFlow from '@/shared/components/TransferFlow.vue'
+import SuggestedPaymentCard from '@/shared/components/SuggestedPaymentCard.vue'
 import GroupCardsSection from '@/modules/groupCards/components/GroupCardsSection.vue'
+import { derivePersonalSimplifiedDebtSummary, buildSettlementDraftQuery } from '@/modules/balances/personalSummary'
 import { useGroupsStore } from '@/modules/groups/store'
 import { useGroupCardsStore } from '@/modules/groupCards/store'
 import { useMembersStore } from '@/modules/members/store'
 import { useExpensesStore } from '@/modules/expenses/store'
 import { useSettlementsStore } from '@/modules/settlements/store'
 import { useBalancesStore } from '@/modules/balances/store'
+import { useAuthStore } from '@/shared/stores/auth'
 import { useSettingsStore } from '@/shared/stores/settings'
 import { useSnackbarStore } from '@/shared/stores/snackbar'
 import { formatAmount, formatCompactCount } from '@/shared/utils/format'
@@ -24,6 +27,7 @@ import { formatAmount, formatCompactCount } from '@/shared/utils/format'
 const route = useRoute()
 const router = useRouter()
 const groupId = route.params.groupId as string
+const authStore = useAuthStore()
 const groupsStore = useGroupsStore()
 const groupCardsStore = useGroupCardsStore()
 const membersStore = useMembersStore()
@@ -49,8 +53,18 @@ const groupCards = computed(() => groupCardsByGroupId.value[groupId] ?? [])
 const members = computed(() => membersByGroupId.value[groupId] ?? [])
 const expenses = computed(() => expensesByGroupId.value[groupId] ?? [])
 const settlements = computed(() => settlementsByGroupId.value[groupId] ?? [])
+const personalBalanceSummary = computed(() =>
+  derivePersonalSimplifiedDebtSummary({
+    members: members.value,
+    simplifiedDebts: balancesByGroupId.value[groupId]?.simplified_debts ?? [],
+    currentUserId: authStore.user?.id,
+  }),
+)
 const hasLoadedGroupData = computed(() => !pageLoading.value)
 const canCreateTransactions = computed(() => hasLoadedGroupData.value && members.value.length >= 2)
+const hasPersonalSummary = computed(
+  () => personalBalanceSummary.value.receivables.length > 0 || personalBalanceSummary.value.payables.length > 0,
+)
 const initialVisibleItems = 3
 const visibleExpenses = computed(() => (expensesExpanded.value ? expenses.value : expenses.value.slice(0, initialVisibleItems)))
 const visibleSettlements = computed(() =>
@@ -126,6 +140,13 @@ function openSettlementEditor() {
   }
   router.push(`/groups/${groupId}/settlement/new`)
 }
+
+function openPersonalSettlement(item: { from_member_id: string; to_member_id: string; amount: number }) {
+  router.push({
+    path: `/groups/${groupId}/settlement/new`,
+    query: buildSettlementDraftQuery(item),
+  })
+}
 </script>
 
 <template>
@@ -171,6 +192,50 @@ function openSettlementEditor() {
     </div>
 
     <GroupCardsSection :group-id="groupId" :group-cards="groupCards" :members="members" :language="language" :strings="strings" />
+
+    <SectionHeader :title="strings.personalSummaryTitle" />
+    <div class="surface-card surface-card--flat personal-summary-card page-stack">
+      <template v-if="hasPersonalSummary">
+        <div v-if="personalBalanceSummary.receivables.length > 0" class="page-stack">
+          <div class="personal-summary-card__label personal-summary-card__label--success">{{ strings.receivablesLabel }}</div>
+          <div class="list-stack">
+            <SuggestedPaymentCard
+              v-for="item in personalBalanceSummary.receivables"
+              :key="`receivable-${item.from_member_id}-${item.to_member_id}`"
+              :from="memberName(item.from_member_id)"
+              :to="memberName(item.to_member_id)"
+              :amount="item.amount"
+              :language="language"
+              tone="success"
+              style="cursor: pointer;"
+              @click="openPersonalSettlement(item)"
+            />
+          </div>
+        </div>
+
+        <div v-if="personalBalanceSummary.payables.length > 0" class="page-stack">
+          <div class="personal-summary-card__label personal-summary-card__label--danger">{{ strings.payablesLabel }}</div>
+          <div class="list-stack">
+            <SuggestedPaymentCard
+              v-for="item in personalBalanceSummary.payables"
+              :key="`payable-${item.from_member_id}-${item.to_member_id}`"
+              :from="memberName(item.from_member_id)"
+              :to="memberName(item.to_member_id)"
+              :amount="item.amount"
+              :language="language"
+              tone="danger"
+              style="cursor: pointer;"
+              @click="openPersonalSettlement(item)"
+            />
+          </div>
+        </div>
+      </template>
+      <EmptyStateCard
+        v-else
+        :title="strings.allSettledTitle"
+        :subtitle="personalBalanceSummary.current_member_id ? strings.personalSummaryEmptySubtitle : strings.personalSummaryUnavailableSubtitle"
+      />
+    </div>
 
     <SectionHeader :title="strings.recentExpensesTitle" />
     <TransitionGroup name="feature-transition" tag="div" class="list-stack">
@@ -237,6 +302,24 @@ function openSettlementEditor() {
 </template>
 
 <style scoped>
+.personal-summary-card {
+  gap: 18px;
+}
+
+.personal-summary-card__label {
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 800;
+}
+
+.personal-summary-card__label--success {
+  color: var(--color-status-creditor);
+}
+
+.personal-summary-card__label--danger {
+  color: var(--color-status-debtor);
+}
+
 .dashboard-more-row {
   display: flex;
   justify-content: center;

@@ -1,0 +1,22 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.encer.splitwise",
+      "sha256_cert_fingerprints": [
+        "FC:7F:FF:3F:AD:AB:E9:51:CC:33:E8:CD:21:94:B2:7B:49:22:3B:72:0E:8A:18:47:7B:21:5F:5D:06:FA:6A:09"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.encer.splitwise.debug",
+      "sha256_cert_fingerprints": [
+        "BA:C8:FB:CB:35:22:F6:29:F5:B3:64:E1:0D:45:41:B2:5F:5D:C1:54:9C:A3:08:60:74:16:6E:D7:4A:5B:26:56"
+      ]
+    }
+  }
+]

@@ -223,7 +223,7 @@ function resolveAuthError(error: unknown, isRegister: boolean, appStrings: typeo
     const payload = error.payload as { error?: { code?: string } }
     const code = payload?.error?.code
     const message = error.message.toLowerCase()
-    if (!isRegister && error.status === 401) return appStrings.invalidCredentials
+    if (!isRegister && (code === 'invalid_credentials' || error.status === 401)) return appStrings.invalidCredentials
     if (isRegister && code === 'registration_username_taken') return appStrings.usernameTaken
     if (isRegister && code === 'registration_phone_taken') return appStrings.phoneVerificationPhoneTaken
     if (isRegister && code === 'registration_code_invalid') return appStrings.phoneVerificationCodeInvalid

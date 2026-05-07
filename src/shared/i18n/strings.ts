@@ -221,6 +221,11 @@ export interface AppStrings {
   optimizePaymentsSubtitle: string
   memberBalanceTitle: string
   suggestedPaymentsTitle: string
+  personalSummaryTitle: string
+  receivablesLabel: string
+  payablesLabel: string
+  personalSummaryEmptySubtitle: string
+  personalSummaryUnavailableSubtitle: string
   suggestedAmountCardTitle: string
   fillSuggestedAmountAction: string
   allSettledTitle: string
@@ -520,6 +525,11 @@ const fa: AppStrings = {
   optimizePaymentsSubtitle: 'کمترین تعداد پرداخت پیشنهادی را نشان می‌دهد.',
   memberBalanceTitle: 'مانده هر نفر',
   suggestedPaymentsTitle: 'پرداخت‌های پیشنهادی',
+  personalSummaryTitle: 'خلاصه وضعیت من',
+  receivablesLabel: 'طلبکاری‌ها',
+  payablesLabel: 'بدهکاری‌ها',
+  personalSummaryEmptySubtitle: 'برای حساب شما در این گروه پرداخت بازی باقی نمانده.',
+  personalSummaryUnavailableSubtitle: 'عضو متناظر با حساب فعلی در این گروه پیدا نشد.',
   suggestedAmountCardTitle: 'مبلغ پیشنهادی',
   fillSuggestedAmountAction: 'قرار دادن مبلغ پیشنهادی',
   allSettledTitle: 'همه‌چیز تسویه است',
@@ -819,6 +829,11 @@ const en: AppStrings = {
   optimizePaymentsSubtitle: 'Shows the minimum useful set of suggested transfers.',
   memberBalanceTitle: 'Member balances',
   suggestedPaymentsTitle: 'Suggested payments',
+  personalSummaryTitle: 'My summary',
+  receivablesLabel: 'To receive',
+  payablesLabel: 'To pay',
+  personalSummaryEmptySubtitle: 'There are no open simplified payments for your account in this group.',
+  personalSummaryUnavailableSubtitle: 'No matching member was found for the current account in this group.',
   suggestedAmountCardTitle: 'Suggested amount',
   fillSuggestedAmountAction: 'Fill suggested amount',
   allSettledTitle: 'Everything is settled',
