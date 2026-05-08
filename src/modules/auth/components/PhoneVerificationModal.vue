@@ -121,6 +121,7 @@ async function requestCode() {
     const response = await authStore.requestPhoneVerification({ phone_number: normalizedPhoneInput.value })
     requestedPhoneNumber.value = response.phone_number
     phoneInput.value = normalizedPhoneInput.value || response.phone_number
+    infoMessage.value = strings.value.phoneVerificationCodeSent
     resetOtpInputs()
     startCountdown(response.resend_available_in_seconds)
     await nextTick()
@@ -158,6 +159,7 @@ async function resendCode() {
   try {
     const response = await authStore.requestPhoneVerification({ phone_number: requestedPhoneNumber.value || phoneInput.value })
     requestedPhoneNumber.value = response.phone_number
+    infoMessage.value = strings.value.phoneVerificationCodeSent
     resetOtpInputs()
     startCountdown(response.resend_available_in_seconds)
     await nextTick()
@@ -248,6 +250,7 @@ onBeforeUnmount(() => {
       </div>
 
       <InlineAlert v-if="verifyError" :message="verifyError" />
+      <InlineAlert v-if="infoMessage" :message="infoMessage" />
 
       <div class="phone-verification-modal__actions">
         <button class="filled-button phone-verification-modal__action-button" type="button" :disabled="!canSubmitCode" @click="verifyCode">
