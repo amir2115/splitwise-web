@@ -50,5 +50,6 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           cd "$COMPOSE_ROOT"
-          docker compose --env-file .env.production up -d --build web nginx
+          docker compose --env-file .env.production up -d --build web
+          docker compose --env-file .env.production up -d --no-deps nginx
           REMOTE
