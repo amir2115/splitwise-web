@@ -50,6 +50,9 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           cd "$COMPOSE_ROOT"
+          flock /tmp/splitwise-deploy.lock bash -s <<'DEPLOY'
+          set -euo pipefail
           docker compose --env-file .env.production up -d --build web
           docker compose --env-file .env.production up -d --no-deps nginx
+          DEPLOY
           REMOTE
