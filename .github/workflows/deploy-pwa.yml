@@ -14,49 +14,41 @@ jobs:
     runs-on: [self-hosted, Linux, X64]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
-        env:
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || 'https://api.splitwise.ir/api/v1' }}
-          VITE_PHONE_VERIFICATION_REQUIRED: ${{ vars.VITE_PHONE_VERIFICATION_REQUIRED || 'false' }}
 
-  deploy:
-    needs: test
-    runs-on: [self-hosted, Linux, X64]
-    steps:
-      - name: Configure SSH
+      - name: Build web image
         run: |
-          install -m 700 -d ~/.ssh
-          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p "${{ secrets.DEPLOY_PORT || '22' }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+          set -euo pipefail
 
-      - name: Deploy web service
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
-          WEB_DEPLOY_ROOT: ${{ vars.WEB_DEPLOY_ROOT || '/opt/offline-splitwise/web' }}
-          COMPOSE_ROOT: ${{ vars.COMPOSE_ROOT || '/opt/offline-splitwise/backend' }}
+          cd "$GITHUB_WORKSPACE"
+
+          docker build \
+            -t splitwise/web:local \
+            ./web
+
+      - name: Import image into k3s
         run: |
-          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
-            "WEB_DEPLOY_ROOT='$WEB_DEPLOY_ROOT' COMPOSE_ROOT='$COMPOSE_ROOT' bash -s" <<'REMOTE'
           set -euo pipefail
-          cd "$WEB_DEPLOY_ROOT"
-          for attempt in 1 2 3 4 5; do
-            git fetch origin main && break
-            if [ "$attempt" = "5" ]; then exit 1; fi
-            sleep $((attempt * 10))
-          done
-          git reset --hard origin/main
-          cd "$COMPOSE_ROOT"
-          flock /tmp/splitwise-deploy.lock bash -s <<'DEPLOY'
+
+          docker save splitwise/web:local | k3s ctr images import -
+
+      - name: Apply Kubernetes manifests
+        env:
+          DEPLOY_ROOT: ${{ vars.DEPLOY_ROOT || '/opt/offline-splitwise/backend' }}
+        run: |
           set -euo pipefail
-          docker compose --env-file .env.production up -d --build web
-          docker compose --env-file .env.production up -d --no-deps nginx
-          DEPLOY
-          REMOTE
+
+          cd "$DEPLOY_ROOT"
+
+          kubectl apply -f deploy/k8s/frontends.yaml
+
+      - name: Restart web deployment
+        run: |
+          set -euo pipefail
+
+          kubectl rollout restart deployment/web -n splitwise
+
+      - name: Wait for rollout
+        run: |
+          set -euo pipefail
+
+          kubectl rollout status deployment/web -n splitwise --timeout=180s
