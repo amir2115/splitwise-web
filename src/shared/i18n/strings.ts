@@ -46,6 +46,19 @@ export interface AppStrings {
   phoneVerificationResendLoading: string
   phoneVerificationResendCountdown: string
   phoneVerificationCodeSent: string
+  phoneVerificationStepLabel: string
+  phoneVerifyPhoneTitle: string
+  phoneVerifyPhoneSubtitle: string
+  phoneVerifyCodeTitle: string
+  phoneVerifyCodeSubtitle: string
+  phoneVerifyOtpTitle: string
+  authSwitchToLoginPrompt: string
+  authSwitchToLoginCta: string
+  authSwitchToRegisterPrompt: string
+  authSwitchToRegisterCta: string
+  forgotPasswordCodeBackLabel: string
+  resendInLabel: string
+  resendCodeLabel: string
   phoneVerificationInvalidPhone: string
   phoneVerificationPhoneTaken: string
   phoneVerificationRateLimited: string
@@ -134,6 +147,20 @@ export interface AppStrings {
   searchGroupsLabel: string
   noSearchResultsTitle: string
   noSearchResultsSubtitle: string
+  membersCount: string
+  groupBalanceOwesYou: string
+  groupBalanceYouOwe: string
+  groupBalanceSettled: string
+  groupsHeading: string
+  dashboardYouOwe: string
+  dashboardYouAreOwed: string
+  dashboardEverythingSettled: string
+  dashboardNextActionTitle: string
+  dashboardSeeAllBalances: string
+  dashboardSettleUpAction: string
+  dashboardPayLabel: string
+  cardholderLabel: string
+  cardSelectMemberHint: string
   homeHeroTitle: string
   homeHeroSubtitle: string
   groupFallbackTitle: string
@@ -220,7 +247,28 @@ export interface AppStrings {
   optimizePaymentsTitle: string
   optimizePaymentsSubtitle: string
   memberBalanceTitle: string
+  tapForBreakdown: string
+  breakdownOwedByTitle: string
+  breakdownOwesToTitle: string
   suggestedPaymentsTitle: string
+  settlementStep1: string
+  settlementStep2: string
+  settlementChoosePayer: string
+  settlementChooseReceiver: string
+  settlementSearchMember: string
+  settlementRecentLabel: string
+  settlementAllMembersLabel: string
+  settlementSwapLabel: string
+  settlementTapToPick: string
+  settlementMemberOwesLabel: string
+  settlementMemberOwedLabel: string
+  settlementMemberSettledLabel: string
+  settlementSuggestedAmountHint: string
+  expenseSummaryPill: string
+  expenseGetsBackLabel: string
+  expenseOwesLabel: string
+  expenseShareLabel: string
+  expensePaidLabel: string
   personalSummaryTitle: string
   receivablesLabel: string
   payablesLabel: string
@@ -340,16 +388,29 @@ const fa: AppStrings = {
   phoneVerificationPhonePlaceholder: '09120000000',
   phoneVerificationRequestAction: 'ارسال کد تایید',
   phoneVerificationRequestLoading: 'در حال ارسال کد...',
-  phoneVerificationCodeLabel: 'کد تایید ارسال شده را وارد کن',
+  phoneVerificationCodeLabel: 'تأیید کد',
   phoneVerificationCodeSubtitle: 'برای استفاده از امکانات جدید سایت باید شماره تلفنت رو وارد کنی.',
-  phoneVerificationVerifiedSubtitle: 'لطفا کد تایید ارسال‌شده را وارد کن.',
+  phoneVerificationVerifiedSubtitle: 'کد ۵ رقمی پیامک‌شده به این شماره را وارد کن:',
   phoneVerificationVerifyAction: 'تایید شماره تلفن',
   phoneVerificationVerifyLoading: 'در حال تایید...',
   phoneVerificationChangePhoneAction: 'تعویض شماره تلفن',
   phoneVerificationResendAction: 'ارسال مجدد کد',
   phoneVerificationResendLoading: 'در حال ارسال مجدد...',
   phoneVerificationResendCountdown: 'ارسال مجدد تا {seconds} ثانیه دیگر',
-  phoneVerificationCodeSent: 'کد تایید برای شماره واردشده ارسال شد.',
+  phoneVerificationCodeSent: 'کد جدید ارسال شد.',
+  phoneVerificationStepLabel: 'تأیید شماره',
+  phoneVerifyPhoneTitle: 'تأیید شماره موبایل',
+  phoneVerifyPhoneSubtitle: 'برای ادامه، شماره موبایلت رو وارد کن. یک کد ۵ رقمی با پیامک برات می‌فرستیم.',
+  phoneVerifyCodeTitle: 'کد را وارد کن',
+  phoneVerifyCodeSubtitle: 'کد ۵ رقمی پیامک‌شده به این شماره را وارد کن:',
+  phoneVerifyOtpTitle: 'تأیید شماره موبایل',
+  authSwitchToLoginPrompt: 'حساب داری؟',
+  authSwitchToLoginCta: 'وارد شو',
+  authSwitchToRegisterPrompt: 'حساب نداری؟',
+  authSwitchToRegisterCta: 'ثبت‌نام کن',
+  forgotPasswordCodeBackLabel: 'تغییر رمز عبور',
+  resendInLabel: 'ارسال مجدد در',
+  resendCodeLabel: 'ارسال دوباره کد',
   phoneVerificationInvalidPhone: 'شماره موبایل معتبر نیست.',
   phoneVerificationPhoneTaken: 'این شماره موبایل قبلا ثبت شده است.',
   phoneVerificationRateLimited: 'کمی صبر کن و دوباره برای دریافت کد تلاش کن.',
@@ -438,6 +499,20 @@ const fa: AppStrings = {
   searchGroupsLabel: 'جست‌وجوی گروه‌ها',
   noSearchResultsTitle: 'گروهی پیدا نشد',
   noSearchResultsSubtitle: 'عبارت جست‌وجو را عوض کن یا گروه جدید بساز.',
+  membersCount: '{count} عضو',
+  groupBalanceOwesYou: 'طلبکار',
+  groupBalanceYouOwe: 'بدهکار',
+  groupBalanceSettled: 'تسویه',
+  groupsHeading: 'گروه‌ها',
+  dashboardYouOwe: 'بدهکاری تو',
+  dashboardYouAreOwed: 'طلب تو',
+  dashboardEverythingSettled: 'همه‌چیز تسویه است',
+  dashboardNextActionTitle: 'بهترین اقدام بعدی',
+  dashboardSeeAllBalances: 'مشاهده همه مانده‌ها',
+  dashboardSettleUpAction: 'پرداخت',
+  dashboardPayLabel: 'پرداخت به',
+  cardholderLabel: 'به نام',
+  cardSelectMemberHint: 'یک عضو را انتخاب کن',
   homeHeroTitle: 'خرج‌ها را آفلاین جمع کن',
   homeHeroSubtitle: 'برای هر سفر یا جمع، گروه بساز، اعضا را اضافه کن و بدهی‌ها را با حالت simplify ببین.',
   groupFallbackTitle: 'گروه',
@@ -524,7 +599,28 @@ const fa: AppStrings = {
   optimizePaymentsTitle: 'حالت پرداخت بهینه',
   optimizePaymentsSubtitle: 'کمترین تعداد پرداخت پیشنهادی را نشان می‌دهد.',
   memberBalanceTitle: 'مانده هر نفر',
+  tapForBreakdown: 'برای جزئیات بزن',
+  breakdownOwedByTitle: 'طلبکار از این افراد',
+  breakdownOwesToTitle: 'بدهکار به این افراد',
   suggestedPaymentsTitle: 'پرداخت‌های پیشنهادی',
+  settlementStep1: 'مرحله ۱',
+  settlementStep2: 'مرحله ۲',
+  settlementChoosePayer: 'انتخاب پرداخت‌کننده',
+  settlementChooseReceiver: 'انتخاب دریافت‌کننده',
+  settlementSearchMember: 'جست‌وجوی عضو',
+  settlementRecentLabel: 'آخرین تسویه‌ها',
+  settlementAllMembersLabel: 'همه اعضا',
+  settlementSwapLabel: 'جابه‌جایی',
+  settlementTapToPick: 'انتخاب کن',
+  settlementMemberOwesLabel: 'بدهکار',
+  settlementMemberOwedLabel: 'طلبکار',
+  settlementMemberSettledLabel: 'تسویه',
+  settlementSuggestedAmountHint: 'مبلغ پیشنهادی از مانده‌های فعلی',
+  expenseSummaryPill: 'خلاصه خرج',
+  expenseGetsBackLabel: 'پس‌گرفت',
+  expenseOwesLabel: 'بدهی',
+  expenseShareLabel: 'سهم',
+  expensePaidLabel: 'پرداخت',
   personalSummaryTitle: 'خلاصه وضعیت من',
   receivablesLabel: 'طلبکاری‌ها',
   payablesLabel: 'بدهکاری‌ها',
@@ -644,16 +740,29 @@ const en: AppStrings = {
   phoneVerificationPhonePlaceholder: '09120000000',
   phoneVerificationRequestAction: 'Send verification code',
   phoneVerificationRequestLoading: 'Sending code...',
-  phoneVerificationCodeLabel: 'Enter the sent verification code',
+  phoneVerificationCodeLabel: 'Verify code',
   phoneVerificationCodeSubtitle: 'Enter your phone number to use the latest features of the website.',
-  phoneVerificationVerifiedSubtitle: 'Please enter the verification code that was sent to you.',
+  phoneVerificationVerifiedSubtitle: 'Enter the 5-digit code we just texted to:',
   phoneVerificationVerifyAction: 'Verify phone number',
   phoneVerificationVerifyLoading: 'Verifying...',
   phoneVerificationChangePhoneAction: 'Change phone number',
   phoneVerificationResendAction: 'Resend code',
   phoneVerificationResendLoading: 'Resending...',
   phoneVerificationResendCountdown: 'Resend available in {seconds}s',
-  phoneVerificationCodeSent: 'The verification code has been sent.',
+  phoneVerificationCodeSent: 'A new code was sent.',
+  phoneVerificationStepLabel: 'Verify phone',
+  phoneVerifyPhoneTitle: 'Verify your phone',
+  phoneVerifyPhoneSubtitle: 'Enter your mobile number to continue. We’ll text you a 5-digit code.',
+  phoneVerifyCodeTitle: 'Enter the code',
+  phoneVerifyCodeSubtitle: 'Enter the 5-digit code we just texted to:',
+  phoneVerifyOtpTitle: 'Verify your phone',
+  authSwitchToLoginPrompt: 'Already have an account?',
+  authSwitchToLoginCta: 'Sign in',
+  authSwitchToRegisterPrompt: 'New here?',
+  authSwitchToRegisterCta: 'Create account',
+  forgotPasswordCodeBackLabel: 'Reset password',
+  resendInLabel: 'Resend in',
+  resendCodeLabel: 'Resend code',
   phoneVerificationInvalidPhone: 'Enter a valid mobile number.',
   phoneVerificationPhoneTaken: 'This phone number is already registered.',
   phoneVerificationRateLimited: 'Please wait before requesting another code.',
@@ -742,6 +851,20 @@ const en: AppStrings = {
   searchGroupsLabel: 'Search groups',
   noSearchResultsTitle: 'No matching groups',
   noSearchResultsSubtitle: 'Try a different search or create a new group.',
+  membersCount: '{count} members',
+  groupBalanceOwesYou: 'creditor',
+  groupBalanceYouOwe: 'debtor',
+  groupBalanceSettled: 'Settled',
+  groupsHeading: 'Groups',
+  dashboardYouOwe: 'You owe',
+  dashboardYouAreOwed: 'You’re owed',
+  dashboardEverythingSettled: 'Everything is settled',
+  dashboardNextActionTitle: 'Next best action',
+  dashboardSeeAllBalances: 'See all balances',
+  dashboardSettleUpAction: 'Settle up',
+  dashboardPayLabel: 'Pay',
+  cardholderLabel: 'Cardholder',
+  cardSelectMemberHint: 'Select a member',
   homeHeroTitle: 'Track shared costs cleanly',
   homeHeroSubtitle: 'Create a group for each trip or event, add members, and check simplified debts.',
   groupFallbackTitle: 'Group',
@@ -828,7 +951,28 @@ const en: AppStrings = {
   optimizePaymentsTitle: 'Simplify payments',
   optimizePaymentsSubtitle: 'Shows the minimum useful set of suggested transfers.',
   memberBalanceTitle: 'Member balances',
+  tapForBreakdown: 'Tap for breakdown',
+  breakdownOwedByTitle: 'Owed by these people',
+  breakdownOwesToTitle: 'Owes these people',
   suggestedPaymentsTitle: 'Suggested payments',
+  settlementStep1: 'Step 1',
+  settlementStep2: 'Step 2',
+  settlementChoosePayer: 'Choose who paid',
+  settlementChooseReceiver: 'Choose who got paid',
+  settlementSearchMember: 'Search a member',
+  settlementRecentLabel: 'Recently settled with',
+  settlementAllMembersLabel: 'All members',
+  settlementSwapLabel: 'Swap',
+  settlementTapToPick: 'Tap to choose',
+  settlementMemberOwesLabel: 'owes',
+  settlementMemberOwedLabel: 'is owed',
+  settlementMemberSettledLabel: 'settled',
+  settlementSuggestedAmountHint: 'Suggested from current balances',
+  expenseSummaryPill: 'Expense summary',
+  expenseGetsBackLabel: 'Gets back',
+  expenseOwesLabel: 'Owes',
+  expenseShareLabel: 'Share',
+  expensePaidLabel: 'Paid',
   personalSummaryTitle: 'My summary',
   receivablesLabel: 'To receive',
   payablesLabel: 'To pay',

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import Icon from '@/shared/components/Icon.vue'
+
 withDefaults(defineProps<{
   from: string
   to: string
@@ -25,10 +27,7 @@ withDefaults(defineProps<{
     </div>
 
     <span class="transfer-flow__arrow" aria-hidden="true">
-      <svg viewBox="0 0 24 24">
-        <path d="M5 12h14" />
-        <path d="m13 7 6 5-6 5" />
-      </svg>
+      <Icon name="arrow-right" :size="24" />
     </span>
 
     <div class="transfer-flow__party">

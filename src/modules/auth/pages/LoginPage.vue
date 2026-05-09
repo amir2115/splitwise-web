@@ -4,9 +4,8 @@ import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/shared/stores/auth'
 import { useSettingsStore } from '@/shared/stores/settings'
-import HeroCard from '@/shared/components/HeroCard.vue'
-import PasswordField from '@/shared/components/PasswordField.vue'
 import { ApiError } from '@/shared/api/client'
+import Icon from '@/shared/components/Icon.vue'
 
 const authStore = useAuthStore()
 const settingsStore = useSettingsStore()
@@ -21,6 +20,7 @@ const form = reactive({
 })
 
 const errorMessage = ref('')
+const showPassword = ref(false)
 const loadingLabel = computed(() => strings.value.loginLoading)
 
 async function submit() {
@@ -66,37 +66,82 @@ function resolveAuthError(error: unknown, isRegister: boolean, appStrings: typeo
 
   return isRegister ? appStrings.registerFailed : appStrings.loginFailed
 }
+
+function togglePassword() { showPassword.value = !showPassword.value }
 </script>
 
 <template>
   <div class="page-shell auth-page-shell">
-    <div class="auth-card surface-card page-stack auth-form-card">
-      <HeroCard :title="strings.loginTitle" :subtitle="strings.loginSubtitle" icon="◌" />
-      <div class="form-field">
-        <label class="form-field__label">{{ strings.usernameLabel }}</label>
-        <input v-model="form.username" class="text-input" type="text" autocomplete="username" :disabled="isSubmitting" />
+    <div class="auth-screen">
+      <div class="auth-logo-mark" aria-hidden="true">◐</div>
+      <h1 class="auth-title">{{ strings.loginTitle }}</h1>
+      <p class="auth-subtitle">{{ strings.loginSubtitle }}</p>
+
+      <div class="auth-field">
+        <label class="auth-field__label" for="login-username">{{ strings.usernameLabel }}</label>
+        <div class="auth-input-wrap">
+          <span class="auth-input__icon" aria-hidden="true">
+            <Icon name="users" :size="18" />
+          </span>
+          <input
+            id="login-username"
+            v-model="form.username"
+            class="auth-input auth-input--with-icon"
+            type="text"
+            autocomplete="username"
+            :disabled="isSubmitting"
+          />
+        </div>
       </div>
-      <div class="form-field">
-        <label class="form-field__label">{{ strings.passwordLabel }}</label>
-        <PasswordField
-          v-model="form.password"
-          autocomplete="current-password"
-          :disabled="isSubmitting"
-          :show-label="strings.showPasswordLabel"
-          :hide-label="strings.hidePasswordLabel"
-        />
+
+      <div class="auth-field">
+        <label class="auth-field__label" for="login-password">{{ strings.passwordLabel }}</label>
+        <div class="auth-input-wrap">
+          <span class="auth-input__icon" aria-hidden="true">
+            <Icon name="lock" :size="18" />
+          </span>
+          <input
+            id="login-password"
+            v-model="form.password"
+            class="auth-input auth-input--with-icon auth-input--with-trailing"
+            :type="showPassword ? 'text' : 'password'"
+            autocomplete="current-password"
+            :disabled="isSubmitting"
+          />
+          <button
+            class="auth-input__trailing"
+            type="button"
+            :title="showPassword ? strings.hidePasswordLabel : strings.showPasswordLabel"
+            :aria-label="showPassword ? strings.hidePasswordLabel : strings.showPasswordLabel"
+            :disabled="isSubmitting"
+            @click="togglePassword"
+          >
+            <Icon name="eye" :size="18" />
+          </button>
+        </div>
       </div>
+
       <Transition name="auth-error-transition">
         <div v-if="errorMessage" class="auth-alert auth-alert--error" role="alert">
           <strong>{{ strings.authErrorTitle }}</strong>
           <span>{{ errorMessage }}</span>
         </div>
       </Transition>
-      <button class="filled-button" type="button" :disabled="isSubmitting" @click="submit">
+
+      <button class="auth-cta" type="button" :disabled="isSubmitting" @click="submit">
         <span v-if="isSubmitting" class="button-loader" aria-hidden="true"></span>
         {{ isSubmitting ? loadingLabel : strings.loginAction }}
       </button>
-      <RouterLink to="/auth/register" class="auth-link">{{ strings.goToRegister }}</RouterLink>
+
+      <RouterLink to="/auth/forgot-password" class="auth-link--inline" style="align-self: center;">
+        {{ strings.forgotPasswordAction }}
+      </RouterLink>
+
+      <div class="auth-spacer"></div>
+      <div class="auth-meta-row">
+        <span>{{ strings.authSwitchToRegisterPrompt }}</span>
+        <RouterLink to="/auth/register" class="auth-meta-row__link">{{ strings.authSwitchToRegisterCta }}</RouterLink>
+      </div>
     </div>
   </div>
 </template>

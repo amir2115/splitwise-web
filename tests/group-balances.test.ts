@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { deriveGroupBalances } from '@/modules/balances/groupBalances'
+import { deriveGroupBalances, projectMemberBreakdown } from '@/modules/balances/groupBalances'
 
 describe('deriveGroupBalances', () => {
   it('derives equal-split member balances from expenses and settlements', () => {
@@ -75,5 +75,39 @@ describe('deriveGroupBalances', () => {
         amount: 1711717,
       },
     ])
+  })
+})
+
+describe('projectMemberBreakdown', () => {
+  const transfers = [
+    { from_member_id: 'sultan', to_member_id: 'amir', amount: 272000 },
+    { from_member_id: 'moein', to_member_id: 'amir', amount: 136000 },
+    { from_member_id: 'sultan', to_member_id: 'feri', amount: 50000 },
+  ]
+
+  it('returns incoming entries for a creditor (net > 0)', () => {
+    const entries = projectMemberBreakdown('amir', 408000, transfers)
+    expect(entries).toEqual([
+      { transfer: transfers[0], other_member_id: 'sultan', kind: 'incoming' },
+      { transfer: transfers[1], other_member_id: 'moein', kind: 'incoming' },
+    ])
+  })
+
+  it('returns outgoing entries for a debtor (net < 0)', () => {
+    const entries = projectMemberBreakdown('sultan', -322000, transfers)
+    expect(entries).toEqual([
+      { transfer: transfers[0], other_member_id: 'amir', kind: 'outgoing' },
+      { transfer: transfers[2], other_member_id: 'feri', kind: 'outgoing' },
+    ])
+  })
+
+  it('returns an empty list for a settled member (net === 0)', () => {
+    const entries = projectMemberBreakdown('amir', 0, transfers)
+    expect(entries).toEqual([])
+  })
+
+  it('returns an empty list when there are no transfers', () => {
+    const entries = projectMemberBreakdown('amir', 100, [])
+    expect(entries).toEqual([])
   })
 })

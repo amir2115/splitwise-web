@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/shared/stores/auth'
 import AuthPage from '@/modules/auth/pages/AuthPage.vue'
 import ChangePasswordPage from '@/modules/auth/pages/ChangePasswordPage.vue'
+import PhoneVerificationPage from '@/modules/auth/pages/PhoneVerificationPage.vue'
 import GroupsPage from '@/modules/groups/pages/GroupsPage.vue'
 import GroupDashboardPage from '@/modules/groups/pages/GroupDashboardPage.vue'
 import MembersPage from '@/modules/members/pages/MembersPage.vue'
@@ -22,6 +23,7 @@ export const router = createRouter({
     { path: '/auth/forgot-password', component: ChangePasswordPage, meta: { guestOnly: true, authMode: 'forgot-password' } },
     { path: '/auth/complete-account', component: ChangePasswordPage, meta: { guestOnly: true, authMode: 'invited-account' } },
     { path: '/auth/change-password', component: ChangePasswordPage, meta: { requiresAuth: true, passwordChangeOnly: true } },
+    { path: '/auth/verify-phone', component: PhoneVerificationPage, meta: { requiresAuth: true, phoneVerifyOnly: true } },
     { path: '/groups', component: GroupsPage, meta: { requiresAuth: true, topLevel: true, allowGuest: true } },
     { path: '/groups/:groupId', component: GroupDashboardPage, meta: { requiresAuth: true } },
     { path: '/groups/:groupId/members', component: MembersPage, meta: { requiresAuth: true } },
@@ -51,6 +53,20 @@ router.beforeEach(async (to) => {
   }
 
   if (to.meta.passwordChangeOnly && !authStore.requiresPasswordChange) {
+    return '/groups'
+  }
+
+  // Force phone verification for authenticated, non-guest users when required.
+  if (
+    authStore.isAuthenticated &&
+    !authStore.isGuestMode &&
+    authStore.requiresPhoneVerification &&
+    !authStore.requiresPasswordChange
+  ) {
+    if (!to.meta.phoneVerifyOnly) return '/auth/verify-phone'
+  }
+
+  if (to.meta.phoneVerifyOnly && !authStore.requiresPhoneVerification) {
     return '/groups'
   }
 

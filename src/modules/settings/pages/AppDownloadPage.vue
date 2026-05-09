@@ -3,6 +3,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import PageTopBar from '@/shared/components/PageTopBar.vue'
+import EmptyStateCard from '@/shared/components/EmptyStateCard.vue'
+import Icon from '@/shared/components/Icon.vue'
 import { ApiError } from '@/shared/api/client'
 import { fetchAppDownloadContent } from '@/shared/api/appDownload'
 import type { AppDownloadContent } from '@/shared/api/types'
@@ -19,6 +21,8 @@ const errorMessage = ref<string | null>(null)
 const fallbackIconUrl = '/android-chrome-192x192.png'
 const bazaarLogoUrl = 'https://webassets.cafebazaar.ir/images/home/logo.png'
 const myketLogoUrl = 'https://developer.myket.ir/fa/assets/logo/logo.png'
+
+const iconUrl = computed(() => content.value?.app_icon_url || fallbackIconUrl)
 
 const downloadCards = computed(() => {
   if (!content.value) return []
@@ -67,8 +71,6 @@ const versionMeta = computed(() => {
   ].filter((item) => Boolean(item.value))
 })
 
-const iconUrl = computed(() => content.value?.app_icon_url || fallbackIconUrl)
-
 function formatDate(value: string | null) {
   if (!value) return null
   const date = new Date(value)
@@ -99,368 +101,287 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="page-shell page-stack">
-    <PageTopBar :title="strings.downloadPageTitle" can-go-back @back="router.back()" />
+  <div class="page-shell page-stack download-page">
+    <PageTopBar :title="strings.downloadPageTitle" can-go-back sticky @back="router.back()" />
 
-    <div v-if="loading" class="surface-card app-download-loading">
+    <div v-if="loading" class="surface-card download-loading">
       <strong>{{ strings.loading }}</strong>
     </div>
 
     <template v-else-if="content">
-      <section class="app-download-hero">
-        <div class="app-download-hero__backdrop"></div>
-        <div class="app-download-hero__content">
-          <div class="app-download-hero__header">
-            <div class="app-download-hero__icon-frame">
-              <img :src="iconUrl" :alt="content.title" class="app-download-hero__icon" />
-            </div>
-            <div class="page-stack" style="gap: 8px;">
-              <span v-if="content.primary_badge_text" class="app-download-badge">{{ content.primary_badge_text }}</span>
-              <h1 class="app-download-hero__title">{{ content.title }}</h1>
-              <p class="app-download-hero__subtitle">{{ content.subtitle }}</p>
-            </div>
+      <!-- Hero -->
+      <section class="download-hero">
+        <div class="download-hero__icon-frame">
+          <img :src="iconUrl" :alt="content.title" class="download-hero__icon" />
+        </div>
+        <div class="download-hero__content">
+          <span v-if="content.primary_badge_text" class="chip chip--brand download-hero__badge">{{ content.primary_badge_text }}</span>
+          <h1 class="download-hero__title">{{ content.title }}</h1>
+          <p class="download-hero__subtitle">{{ content.subtitle }}</p>
+        </div>
+      </section>
+
+      <!-- Meta -->
+      <div v-if="versionMeta.length" class="download-meta">
+        <article v-for="item in versionMeta" :key="item.label" class="download-meta__card">
+          <span class="muted">{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+        </article>
+      </div>
+
+      <!-- Stores -->
+      <h3 class="eyebrow">{{ strings.downloadStoresTitle }}</h3>
+      <div v-if="downloadCards.length" class="download-store-mobile">
+        <DownloadStoreRail :items="downloadCards" />
+      </div>
+      <div v-if="downloadCards.length" class="download-store-desktop">
+        <a
+          v-for="item in downloadCards"
+          :key="item.key"
+          class="download-store-card"
+          :href="item.href ?? undefined"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <div class="download-store-card__logo">
+            <img :src="item.logoUrl" :alt="item.title" />
           </div>
-
-          <div v-if="versionMeta.length" class="app-download-meta-grid">
-            <article v-for="item in versionMeta" :key="item.label" class="app-download-meta-card">
-              <span class="muted">{{ item.label }}</span>
-              <strong>{{ item.value }}</strong>
-            </article>
+          <div class="download-store-card__body">
+            <strong>{{ item.title }}</strong>
+            <span class="muted">{{ item.subtitle }}</span>
           </div>
-        </div>
-      </section>
+          <span class="download-store-card__arrow" aria-hidden="true">
+            <Icon name="download" :size="14" />
+          </span>
+        </a>
+      </div>
+      <EmptyStateCard
+        v-else
+        :title="strings.downloadPageEmptyTitle"
+        :subtitle="strings.downloadPageEmptySubtitle"
+      />
 
-      <section class="page-stack" style="gap: 14px;">
-        <div class="section-heading">
-          <strong>{{ strings.downloadStoresTitle }}</strong>
-        </div>
-        <div v-if="downloadCards.length" class="app-download-links-mobile">
-          <DownloadStoreRail :items="downloadCards" />
-        </div>
-        <div v-if="downloadCards.length" class="app-download-links">
-          <a
-            v-for="item in downloadCards"
-            :key="item.key"
-            class="app-download-link"
-            :class="item.accentClass"
-            :href="item.href ?? undefined"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <div class="app-download-link__logo-wrap">
-              <img :src="item.logoUrl" :alt="item.title" class="app-download-link__logo" />
-            </div>
-            <div class="page-stack app-download-link__content" style="gap: 4px;">
-              <strong>{{ item.title }}</strong>
-              <span>{{ item.subtitle }}</span>
-            </div>
-            <span class="app-download-link__arrow">↙</span>
-          </a>
-        </div>
-        <div v-else class="surface-card app-download-empty">
-          <strong>{{ strings.downloadPageEmptyTitle }}</strong>
-          <p class="muted">{{ strings.downloadPageEmptySubtitle }}</p>
-        </div>
-      </section>
-
-      <section class="app-download-notes">
-        <div class="section-heading">
-          <strong>{{ strings.downloadVersionNotesTitle }}</strong>
-        </div>
-        <ul class="app-download-notes__list">
-          <li v-for="note in content.release_notes" :key="note" class="app-download-notes__item">
-            <span class="app-download-notes__dot"></span>
-            <span>{{ note }}</span>
-          </li>
-        </ul>
-      </section>
+      <!-- Release notes -->
+      <h3 class="eyebrow">{{ strings.downloadVersionNotesTitle }}</h3>
+      <ul class="download-notes">
+        <li v-for="note in content.release_notes" :key="note" class="download-notes__item">
+          <span class="download-notes__dot" aria-hidden="true"></span>
+          <span>{{ note }}</span>
+        </li>
+      </ul>
     </template>
 
-    <div v-else class="surface-card app-download-error-card page-stack">
-      <div class="app-download-error-card__icon">!</div>
-      <strong class="app-download-error-card__title">{{ strings.downloadPageErrorTitle }}</strong>
-      <p class="app-download-error-card__message">{{ errorMessage ?? strings.downloadPageErrorBody }}</p>
-      <button class="filled-button app-download-error-card__button" type="button" @click="load">{{ strings.retry }}</button>
+    <div v-else class="surface-card download-error">
+      <div class="download-error__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 7v6"/>
+          <circle cx="12" cy="16.5" r="0.7" fill="currentColor"/>
+        </svg>
+      </div>
+      <strong class="download-error__title">{{ strings.downloadPageErrorTitle }}</strong>
+      <p class="download-error__message">{{ errorMessage ?? strings.downloadPageErrorBody }}</p>
+      <button class="filled-button" type="button" @click="load">{{ strings.retry }}</button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.app-download-loading,
-.app-download-empty,
-.app-download-notes,
-.app-download-error-card {
-  padding: 20px;
+.download-page { padding-top: 2px; }
+
+.download-loading {
+  text-align: center;
+  padding: var(--s-7) var(--s-6);
 }
 
-.app-download-hero {
-  position: relative;
-  overflow: hidden;
-  border-radius: 32px;
-  background:
-    radial-gradient(circle at top right, rgba(255, 196, 93, 0.28), transparent 32%),
-    radial-gradient(circle at top left, rgba(27, 166, 114, 0.18), transparent 28%),
-    linear-gradient(145deg, #102234 0%, #173d4d 44%, #f4f0e7 180%);
-  color: #f8fafc;
-  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.22);
-}
-
-.app-download-hero__backdrop {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 42%),
-    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03) 10px, transparent 10px, transparent 22px);
-  pointer-events: none;
-}
-
-.app-download-hero__content {
-  position: relative;
-  padding: 24px;
+/* Hero */
+.download-hero {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.app-download-hero__header {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 18px;
   align-items: center;
+  gap: var(--s-5);
+  padding: var(--s-6);
+  border-radius: var(--r-2xl);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-2);
 }
-
-.app-download-hero__icon-frame {
-  width: 88px;
-  height: 88px;
-  border-radius: 28px;
-  padding: 8px;
-  background: rgba(255, 255, 255, 0.14);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+.download-hero__icon-frame {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--brand-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
-
-.app-download-hero__icon {
+.download-hero__icon {
   width: 100%;
   height: 100%;
-  border-radius: 22px;
   object-fit: cover;
-  display: block;
-  background: rgba(255, 255, 255, 0.22);
 }
-
-.app-download-badge {
-  width: fit-content;
-  min-height: 30px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  font-size: 13px;
-}
-
-.app-download-hero__title {
-  margin: 0;
-  font-size: clamp(28px, 5vw, 38px);
-  line-height: 1.1;
-}
-
-.app-download-hero__subtitle {
-  margin: 0;
-  max-width: 42ch;
-  color: rgba(241, 245, 249, 0.88);
-  line-height: 1.7;
-}
-
-.app-download-meta-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-  gap: 12px;
-}
-
-.app-download-meta-card {
-  padding: 14px;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+.download-hero__content {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--s-2);
+}
+.download-hero__badge { align-self: flex-start; }
+.download-hero__title {
+  margin: 0;
+  font-size: var(--t-title);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+.download-hero__subtitle {
+  margin: 0;
+  color: var(--fg-muted);
+  font-size: var(--t-label);
+  line-height: var(--lh-body);
 }
 
-.app-download-meta-card .muted {
-  color: rgba(241, 245, 249, 0.72);
-}
-
-.app-download-meta-card strong {
-  color: #f8fafc;
-}
-
-.section-heading strong {
-  font-size: 18px;
-  line-height: 28px;
-}
-
-.app-download-links-mobile {
-  display: none !important;
-}
-
-.app-download-links {
+/* Meta grid */
+.download-meta {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-3);
+}
+.download-meta__card {
+  padding: var(--s-4);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+.download-meta__card .muted {
+  font-size: var(--t-caption);
+}
+.download-meta__card strong {
+  font-size: var(--t-body);
+  font-weight: var(--fw-semibold);
 }
 
-.app-download-link {
-  min-height: 128px;
-  padding: 20px;
-  border-radius: 28px;
+/* Store cards (desktop) */
+.download-store-desktop {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.download-store-card {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
+  gap: var(--s-4);
+  padding: var(--s-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
   text-decoration: none;
-  color: #0f172a;
-  box-shadow: 0 20px 42px rgba(15, 23, 42, 0.08);
+  color: var(--fg);
+  transition: transform var(--d-fast) var(--ease-standard), box-shadow var(--d-fast) var(--ease-standard);
+  box-shadow: var(--shadow-1);
 }
-
-.app-download-link__logo-wrap {
-  width: 58px;
-  height: 58px;
-  border-radius: 20px;
-  display: grid;
-  place-items: center;
-  background: rgba(255, 255, 255, 0.68);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
+.download-store-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
 }
-
-.app-download-link__logo {
-  width: 36px;
-  height: 36px;
+.download-store-card__logo {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.download-store-card__logo img {
+  width: 80%;
+  height: 80%;
   object-fit: contain;
-  display: block;
+}
+.download-store-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.download-store-card__body strong {
+  font-size: var(--t-body);
+  font-weight: var(--fw-semibold);
+}
+.download-store-card__arrow { color: var(--brand); }
+
+/* Mobile rail */
+.download-store-mobile { display: none; }
+@media (max-width: 560px) {
+  .download-store-mobile { display: block; }
+  .download-store-desktop { display: none; }
+  .download-meta { grid-template-columns: 1fr; }
+  .download-hero { flex-direction: column; align-items: flex-start; gap: var(--s-4); padding: var(--s-5); }
 }
 
-.app-download-link__content {
-  text-align: start;
-}
-
-.app-download-link span {
-  color: rgba(15, 23, 42, 0.68);
-}
-
-.app-download-link--bazaar {
-  background: linear-gradient(140deg, #dcfce7, #84cc16);
-}
-
-.app-download-link--myket {
-  background: linear-gradient(140deg, #dbeafe, #1d4ed8);
-}
-
-.app-download-link--direct {
-  background: linear-gradient(140deg, #d9f3f1, #0f766e);
-}
-
-.app-download-link__arrow {
-  font-size: 22px;
-  color: rgba(15, 23, 42, 0.9);
-}
-
-.app-download-notes {
-  border-radius: 28px;
-  border: 1px solid color-mix(in srgb, var(--color-outline) 12%, transparent);
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent 32%),
-    var(--color-surface);
-}
-
-.app-download-notes__list {
+/* Notes */
+.download-notes {
   list-style: none;
-  margin: 18px 0 0;
+  margin: 0;
   padding: 0;
-  display: grid;
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
 }
-
-.app-download-notes__item {
+.download-notes__item {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
-  align-items: start;
+  gap: var(--s-3);
+  align-items: flex-start;
+  padding: var(--s-3) 0;
+  border-bottom: 1px solid var(--divider);
+  color: var(--fg);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+}
+.download-notes__item:last-child { border-bottom: 0; }
+.download-notes__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand);
+  margin-top: 8px;
 }
 
-.app-download-notes__dot {
-  width: 10px;
-  height: 10px;
-  margin-top: 9px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--color-primary), #ffb84d);
-}
-
-.app-download-error-card {
-  align-items: center;
+/* Error state */
+.download-error {
   text-align: center;
-  gap: 10px;
+  padding: var(--s-7) var(--s-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
 }
-
-.app-download-error-card__icon {
-  width: 58px;
-  height: 58px;
-  border-radius: 20px;
-  display: grid;
-  place-items: center;
-  background: color-mix(in srgb, var(--color-error) 14%, var(--color-surface));
-  color: var(--color-error);
-  font-size: 28px;
-  font-weight: 800;
+.download-error__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-md);
+  background: var(--neg-soft);
+  color: var(--neg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-
-.app-download-error-card__title {
-  font-size: 22px;
-  line-height: 32px;
+.download-error__title {
+  font-size: var(--t-h2);
+  font-weight: var(--fw-semibold);
 }
-
-.app-download-error-card__message {
-  max-width: 48ch;
+.download-error__message {
   margin: 0;
-  color: var(--color-on-surface-variant);
-  line-height: 1.9;
-}
-
-.app-download-error-card__button {
-  width: auto;
-  min-width: 136px;
-}
-
-:global(:root[data-theme='light']) .app-download-link__arrow,
-:global(:root[data-theme='light']) .app-download-link span {
-  color: rgba(16, 32, 35, 0.72);
-}
-
-@media (max-width: 900px) {
-  .app-download-links-mobile {
-    display: block !important;
-  }
-
-  .app-download-links {
-    display: none;
-  }
-}
-
-@media (max-width: 640px) {
-  .app-download-hero__header {
-    grid-template-columns: 1fr;
-  }
-
-  .app-download-hero__icon-frame {
-    width: 74px;
-    height: 74px;
-  }
-}
-
-@media (max-width: 520px) {
-  .app-download-meta-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  color: var(--fg-muted);
+  font-size: var(--t-label);
+  line-height: var(--lh-body);
 }
 </style>

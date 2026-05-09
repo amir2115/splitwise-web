@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import Icon from '@/shared/components/Icon.vue'
 import { useSettingsStore } from '@/shared/stores/settings'
 import { digitsOnly, formatAmountInput } from '@/shared/utils/format'
 import {
@@ -260,7 +261,9 @@ const calculatorRows = [
           <div class="calculator-sheet" role="dialog" aria-modal="true">
             <div class="calculator-sheet__header">
               <strong>{{ isFa ? 'ماشین‌حساب' : 'Calculator' }}</strong>
-              <button class="icon-button calculator-sheet__close" type="button" @click="closeCalculator">✕</button>
+              <button class="icon-button calculator-sheet__close" type="button" @click="closeCalculator">
+                <Icon name="close" :size="14" />
+              </button>
             </div>
 
             <div class="calculator-display-card">

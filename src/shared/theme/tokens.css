@@ -1,151 +1,294 @@
+/* =============================================================
+   Splitwise / Dengino — redesigned token layer (Swiply system).
+   Premium expense design system: mineral teal + warm brass +
+   parchment neutrals; oxidized ink in dark theme.
+   Token names follow the new system. Legacy `--color-*` names
+   are kept as aliases so existing components keep working.
+   ============================================================= */
+
+/* ---------- Persian font (local) ---------- */
 @font-face {
   font-family: 'IranYekan';
   src: url('../../assets/fonts/iran_yekan_regular.ttf') format('truetype');
   font-weight: 400;
+  font-display: swap;
 }
-
 @font-face {
   font-family: 'IranYekan';
   src: url('../../assets/fonts/iran_yekan_medium.ttf') format('truetype');
   font-weight: 500;
+  font-display: swap;
 }
-
 @font-face {
   font-family: 'IranYekan';
   src: url('../../assets/fonts/iran_yekan_bold.ttf') format('truetype');
   font-weight: 700;
+  font-display: swap;
 }
-
 @font-face {
   font-family: 'IranYekan';
   src: url('../../assets/fonts/iran_yekan_extra_bold.ttf') format('truetype');
   font-weight: 800;
+  font-display: swap;
 }
 
+/* ---------- Latin font (local) ---------- */
 @font-face {
   font-family: 'GoogleSans';
   src: url('../../assets/fonts/google_sans_regular.ttf') format('truetype');
   font-weight: 400;
+  font-display: swap;
 }
-
 @font-face {
   font-family: 'GoogleSans';
   src: url('../../assets/fonts/google_sans_medium.ttf') format('truetype');
   font-weight: 500;
+  font-display: swap;
 }
-
 @font-face {
   font-family: 'GoogleSans';
   src: url('../../assets/fonts/google_sans_bold.ttf') format('truetype');
   font-weight: 700;
+  font-display: swap;
 }
 
 :root {
-  --font-app-fa: 'IranYekan', sans-serif;
-  --font-app-en: 'GoogleSans', sans-serif;
-  --font-app: var(--font-app-fa);
-  --color-primary: #177c70;
-  --color-on-primary: #ffffff;
-  --color-secondary: #2b8c7f;
-  --color-on-secondary: #ffffff;
-  --color-tertiary: #9d7657;
-  --color-background: #f2efe6;
-  --color-on-background: #183133;
-  --color-surface: #f8f4ec;
-  --color-surface-strong: #fffaf3;
-  --color-surface-soft: #eef5f1;
-  --color-surface-accent: #e1f1eb;
-  --color-surface-variant: #d7e3dd;
-  --color-on-surface: #183133;
-  --color-on-surface-variant: #526968;
-  --color-outline: #869a96;
-  --color-border-soft: rgba(82, 105, 104, 0.12);
-  --color-border-strong: rgba(82, 105, 104, 0.2);
-  --color-error: #b91c1c;
-  --color-status-creditor: #177c70;
-  --color-status-creditor-bg: rgba(23, 124, 112, 0.12);
-  --color-status-debtor: #9d7657;
-  --color-status-debtor-bg: rgba(157, 118, 87, 0.13);
-  --color-status-settled: #617674;
-  --color-status-settled-bg: rgba(97, 118, 116, 0.1);
-  --background-gradient: radial-gradient(circle at top, rgba(23, 124, 112, 0.08), transparent 34%), linear-gradient(180deg, #f7f4ec 0%, #eef4ef 100%);
-  --hero-accent: rgba(23, 124, 112, 0.08);
-  --hero-icon-surface: rgba(255, 250, 243, 0.96);
-  --shadow-card: 0 18px 40px rgba(18, 37, 38, 0.07);
-  --interactive-press-tint: rgba(24, 49, 51, 0.07);
-  --interactive-hover-tint: rgba(23, 124, 112, 0.06);
-  --interactive-focus-ring: rgba(23, 124, 112, 0.16);
-  --radius-xl: 32px;
-  --radius-lg: 28px;
-  --radius-md: 24px;
-  --radius-sm: 18px;
+  /* ---------- Type ---------- */
+  --font-fa: 'IranYekan', 'Vazirmatn', system-ui, sans-serif;
+  --font-en: 'GoogleSans', 'Inter', 'SF Pro Text', system-ui, -apple-system, sans-serif;
+  --font-num: 'GoogleSans', 'Inter', ui-rounded, system-ui, sans-serif;
+  --font-app: var(--font-fa);
+
+  /* legacy names */
+  --font-app-fa: var(--font-fa);
+  --font-app-en: var(--font-en);
+
+  /* Type scale — fewer sizes, stronger hierarchy */
+  --t-display: 28px;
+  --t-title: 20px;
+  --t-h2: 17px;
+  --t-body: 15px;
+  --t-label: 13px;
+  --t-caption: 12px;
+
+  --lh-tight: 1.15;
+  --lh-snug: 1.3;
+  --lh-body: 1.5;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* ---------- Spacing (8pt grid + half-step) ---------- */
+  --s-1: 2px;
+  --s-2: 4px;
+  --s-3: 8px;
+  --s-4: 12px;
+  --s-5: 16px;
+  --s-6: 20px;
+  --s-7: 24px;
+  --s-8: 32px;
+  --s-9: 40px;
+  --s-10: 56px;
+
+  /* ---------- Shape ---------- */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-2xl: 36px;
+  --r-pill: 999px;
+
+  /* legacy radii */
+  --radius-sm: var(--r-md);
+  --radius-md: var(--r-lg);
+  --radius-lg: var(--r-xl);
+  --radius-xl: var(--r-2xl);
+
+  /* ---------- Motion ---------- */
+  --d-instant: 80ms;
+  --d-fast: 140ms;
+  --d-base: 220ms;
+  --d-slow: 320ms;
+  --d-emphasized: 420ms;
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-enter: cubic-bezier(0, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* layout */
   --content-width: 760px;
 }
 
+/* ============================================================
+   LIGHT — warm editorial parchment + mineral teal
+   ============================================================ */
+:root,
+:root[data-theme='light'] {
+  /* Surfaces */
+  --bg: #f6f2ea;
+  --bg-subtle: #efe9dd;
+  --surface: #fffbf4;
+  --surface-2: #f9f4ea;
+  --surface-sunk: #ece5d6;
+  --overlay: rgba(20, 30, 28, 0.42);
+
+  /* Text */
+  --fg: #15201e;
+  --fg-muted: #5c6562;
+  --fg-subtle: #8a8e87;
+  --fg-inverse: #fffbf4;
+
+  /* Borders */
+  --border: rgba(24, 40, 38, 0.08);
+  --border-strong: rgba(24, 40, 38, 0.14);
+  --divider: rgba(24, 40, 38, 0.06);
+
+  /* Brand — mineral teal */
+  --brand: #0e6b61;
+  --brand-strong: #0a5048;
+  --brand-soft: #dcece8;
+  --brand-on: #fffbf4;
+  --brand-ring: rgba(14, 107, 97, 0.22);
+
+  /* Warm accent — brass (debtors, cautionary) */
+  --accent: #a07240;
+  --accent-soft: #f1e5d1;
+  --accent-on: #fffbf4;
+
+  /* Semantic */
+  --pos: #0e6b61;
+  --pos-soft: #dcece8;
+  --neg: #b44b44;
+  --neg-soft: #f4dfdc;
+  --warn: #b88b2c;
+  --warn-soft: #f3e6c7;
+  --settled: #6b7a76;
+  --settled-soft: #e5e7e1;
+
+  /* Shadows — soft, sparse */
+  --shadow-1: 0 1px 2px rgba(20, 30, 28, 0.04), 0 2px 6px rgba(20, 30, 28, 0.04);
+  --shadow-2: 0 2px 6px rgba(20, 30, 28, 0.05), 0 10px 24px rgba(20, 30, 28, 0.06);
+  --shadow-3: 0 8px 16px rgba(20, 30, 28, 0.06), 0 24px 48px rgba(20, 30, 28, 0.10);
+
+  /* Interactive */
+  --press: rgba(20, 30, 28, 0.05);
+  --hover: rgba(14, 107, 97, 0.05);
+  --ring: rgba(14, 107, 97, 0.22);
+
+  /* ---------- Legacy name aliases (kept so existing components keep working) ---------- */
+  --color-primary: var(--brand);
+  --color-on-primary: var(--brand-on);
+  --color-secondary: var(--brand-strong);
+  --color-on-secondary: var(--brand-on);
+  --color-tertiary: var(--accent);
+  --color-background: var(--bg);
+  --color-on-background: var(--fg);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface);
+  --color-surface-soft: var(--surface-2);
+  --color-surface-accent: var(--brand-soft);
+  --color-surface-variant: var(--surface-sunk);
+  --color-on-surface: var(--fg);
+  --color-on-surface-variant: var(--fg-muted);
+  --color-outline: var(--fg-subtle);
+  --color-border-soft: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-error: var(--neg);
+  --color-status-creditor: var(--pos);
+  --color-status-creditor-bg: var(--pos-soft);
+  --color-status-debtor: var(--neg);
+  --color-status-debtor-bg: var(--neg-soft);
+  --color-status-settled: var(--settled);
+  --color-status-settled-bg: var(--settled-soft);
+  --background-gradient:
+    radial-gradient(circle at 20% 10%, color-mix(in oklab, var(--brand) 7%, transparent), transparent 38%),
+    radial-gradient(circle at 90% 90%, color-mix(in oklab, var(--accent) 5%, transparent), transparent 42%),
+    var(--bg);
+  --hero-accent: var(--brand-soft);
+  --hero-icon-surface: var(--surface);
+  --shadow-card: var(--shadow-2);
+  --interactive-press-tint: var(--press);
+  --interactive-hover-tint: var(--hover);
+  --interactive-focus-ring: var(--ring);
+}
+
+/* ============================================================
+   DARK — oxidized ink, dense metal, premium (not neon)
+   ============================================================ */
 :root[data-theme='dark'] {
-  --color-primary: #67d7c2;
-  --color-on-primary: #092d2b;
-  --color-secondary: #82d3c2;
-  --color-on-secondary: #0b2d2a;
-  --color-tertiary: #c59b7a;
-  --color-background: #0b1516;
-  --color-on-background: #edf6f2;
-  --color-surface: #122022;
-  --color-surface-strong: #183033;
-  --color-surface-soft: #23383a;
-  --color-surface-accent: #173633;
-  --color-surface-variant: #284140;
-  --color-on-surface: #f2f8f4;
-  --color-on-surface-variant: #b2c2be;
-  --color-outline: #718885;
-  --color-border-soft: rgba(113, 136, 133, 0.18);
-  --color-border-strong: rgba(178, 194, 190, 0.2);
-  --color-error: #ff8a80;
-  --color-status-creditor: #67d7c2;
-  --color-status-creditor-bg: rgba(103, 215, 194, 0.12);
-  --color-status-debtor: #c59b7a;
-  --color-status-debtor-bg: rgba(197, 155, 122, 0.14);
-  --color-status-settled: #a8b8b4;
-  --color-status-settled-bg: rgba(168, 185, 181, 0.1);
-  --background-gradient: radial-gradient(circle at top, rgba(103, 215, 194, 0.1), transparent 28%), linear-gradient(180deg, #0b1516 0%, #0f1f21 54%, #133033 100%);
-  --hero-accent: rgba(103, 215, 194, 0.08);
-  --hero-icon-surface: rgba(24, 48, 51, 0.72);
-  --shadow-card: 0 24px 52px rgba(0, 0, 0, 0.34);
-  --interactive-press-tint: rgba(241, 247, 243, 0.1);
-  --interactive-hover-tint: rgba(103, 215, 194, 0.08);
-  --interactive-focus-ring: rgba(103, 215, 194, 0.2);
+  --bg: #0c100f;
+  --bg-subtle: #0f1413;
+  --surface: #141a19;
+  --surface-2: #1a2120;
+  --surface-sunk: #0b100f;
+  --overlay: rgba(0, 0, 0, 0.58);
+
+  --fg: #e9ede9;
+  --fg-muted: #9da6a2;
+  --fg-subtle: #6d746f;
+  --fg-inverse: #0c100f;
+
+  --border: rgba(233, 237, 233, 0.08);
+  --border-strong: rgba(233, 237, 233, 0.14);
+  --divider: rgba(233, 237, 233, 0.05);
+
+  --brand: #5eb8a9;
+  --brand-strong: #7fcfc1;
+  --brand-soft: rgba(94, 184, 169, 0.14);
+  --brand-on: #0a1918;
+  --brand-ring: rgba(94, 184, 169, 0.28);
+
+  --accent: #c49866;
+  --accent-soft: rgba(196, 152, 102, 0.14);
+  --accent-on: #1a0f06;
+
+  --pos: #5eb8a9;
+  --pos-soft: rgba(94, 184, 169, 0.14);
+  --neg: #d97a6d;
+  --neg-soft: rgba(217, 122, 109, 0.14);
+  --warn: #d4a95a;
+  --warn-soft: rgba(212, 169, 90, 0.14);
+  --settled: #8a938f;
+  --settled-soft: rgba(138, 147, 143, 0.12);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.24);
+  --shadow-2: 0 4px 10px rgba(0, 0, 0, 0.36), 0 14px 32px rgba(0, 0, 0, 0.38);
+  --shadow-3: 0 10px 20px rgba(0, 0, 0, 0.42), 0 28px 60px rgba(0, 0, 0, 0.50);
+
+  --press: rgba(233, 237, 233, 0.06);
+  --hover: rgba(94, 184, 169, 0.08);
+  --ring: rgba(94, 184, 169, 0.28);
+
+  /* Legacy aliases re-resolve through the dark scope automatically.
+     We restate the gradient to use dark accents. */
+  --background-gradient:
+    radial-gradient(circle at 20% 10%, color-mix(in oklab, var(--brand) 12%, transparent), transparent 42%),
+    radial-gradient(circle at 90% 90%, color-mix(in oklab, var(--accent) 9%, transparent), transparent 46%),
+    var(--bg);
 }
 
-* {
-  box-sizing: border-box;
-}
+/* ---------- Base ---------- */
+* { box-sizing: border-box; }
+*::before, *::after { box-sizing: border-box; }
 
-html,
-body,
-#app {
-  min-height: 100%;
-}
+html[lang='en'] { --font-app: var(--font-en); }
+html[lang='fa'] { --font-app: var(--font-fa); }
 
-html[lang='en'] {
-  --font-app: var(--font-app-en);
-}
-
-html[lang='fa'] {
-  --font-app: var(--font-app-fa);
-}
+html, body, #app { min-height: 100%; }
 
 body {
   margin: 0;
   font-family: var(--font-app);
   background: var(--background-gradient);
-  color: var(--color-on-background);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-button,
-input,
-textarea,
-select,
-a {
+button, input, textarea, select, a {
   font: inherit;
   color: inherit;
 }
@@ -155,4 +298,20 @@ button {
   -webkit-appearance: none;
   appearance: none;
   letter-spacing: 0;
+}
+
+/* Tabular numbers for prices/balances */
+.num,
+.amount-text,
+.amount-text__value,
+.amount-text__currency {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+html[lang='fa'] .num,
+html[lang='fa'] .amount-text,
+html[lang='fa'] .amount-text__value,
+html[lang='fa'] .amount-text__currency {
+  font-family: var(--font-fa);
 }

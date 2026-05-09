@@ -2,10 +2,13 @@
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import HeroCard from '@/shared/components/HeroCard.vue'
+import PageTopBar from '@/shared/components/PageTopBar.vue'
+import Avatar from '@/shared/components/Avatar.vue'
+import Icon from '@/shared/components/Icon.vue'
 import { useSettingsStore } from '@/shared/stores/settings'
 import { useAuthStore } from '@/shared/stores/auth'
 import { useAppShellStore } from '@/shared/stores/appShell'
+import UsernameHandle from '@/shared/components/UsernameHandle.vue'
 
 const router = useRouter()
 const settingsStore = useSettingsStore()
@@ -16,14 +19,14 @@ const { strings, language, themeMode } = storeToRefs(settingsStore)
 const { user, isAuthenticated } = storeToRefs(authStore)
 const { hasInternet, isApiReachable, lastHealthWasSuccessful, isCheckingHealth, lastCheckedAt } = storeToRefs(appShellStore)
 
-const settingsLinkArrow = computed(() => (language.value === 'fa' ? '↙' : '↘'))
 const canSync = computed(() => isAuthenticated.value)
 const effectiveOnline = computed(() => lastHealthWasSuccessful.value || isApiReachable.value)
+const isRtl = computed(() => settingsStore.direction === 'rtl')
 
 const accountLabel = computed(() => {
   if (!user.value) return strings.value.accountGuestSubtitle
   return user.value.name?.trim()
-    ? `${user.value.name} (@${user.value.username})`
+    ? user.value.name
     : `@${user.value.username}`
 })
 
@@ -73,219 +76,182 @@ function signIn() {
 </script>
 
 <template>
-  <div class="page-shell page-stack">
-    <HeroCard :title="strings.settingsHeroTitle" :subtitle="strings.settingsHeroSubtitle" icon="⚙" />
+  <div class="page-shell page-stack settings-page">
+    <PageTopBar :title="strings.settingsHeroTitle" />
 
-    <section class="account-section-card">
-      <div class="page-stack" style="gap: 14px;">
-        <strong class="settings-section-title">{{ strings.accountTitle }}</strong>
-        <div class="settings-account-row">
-          <div class="settings-account-meta">
-            <strong>{{ accountLabel }}</strong>
-            <span v-if="user" class="muted">{{ strings.accountSignedInAs }}</span>
-            <span v-if="user?.phone_number" class="muted settings-account-phone">
-              {{ strings.accountPhoneLabel }}: {{ user.phone_number }}
-            </span>
-            <span v-if="phoneVerificationLabel" class="muted settings-account-verification">
-              {{ phoneVerificationLabel }}
-            </span>
-          </div>
-          <button v-if="user" class="outline-button is-danger settings-logout-button" type="button" @click="signOut">
-            {{ strings.logoutLabel }}
+    <!-- Account row card -->
+    <section class="surface-card account-row">
+      <Avatar :name="user?.name ?? 'Guest'" tone="brand" :size="44" />
+      <div class="account-row__meta">
+        <strong>{{ accountLabel }}</strong>
+        <span v-if="user?.username" class="muted"><UsernameHandle :username="user.username" /></span>
+        <span v-else class="muted">{{ strings.accountGuestSubtitle }}</span>
+        <span v-if="user?.phone_number" class="muted account-row__phone">{{ user.phone_number }}</span>
+      </div>
+      <span v-if="canSync && effectiveOnline" class="chip chip--pos">
+        <Icon name="check" :size="10" />
+        {{ strings.syncOnline }}
+      </span>
+      <span v-else-if="canSync" class="chip chip--neg">{{ strings.syncOffline }}</span>
+    </section>
+
+    <span v-if="phoneVerificationLabel" class="chip" :class="user?.is_phone_verified ? 'chip--pos' : 'chip--warn'">{{ phoneVerificationLabel }}</span>
+
+    <!-- Preferences group -->
+    <h3 class="eyebrow">{{ strings.languageTitle }} / {{ strings.themeTitle }}</h3>
+    <div class="surface-card prefs-group">
+      <div class="prefs-row">
+        <div class="prefs-row__label">{{ strings.languageTitle }}</div>
+        <div class="segmented">
+          <button class="segmented__btn" :class="{ 'is-active': language === 'en' }" type="button" @click="settingsStore.setLanguage('en')">EN</button>
+          <button class="segmented__btn" :class="{ 'is-active': language === 'fa' }" type="button" @click="settingsStore.setLanguage('fa')">FA</button>
+        </div>
+      </div>
+      <div class="prefs-row">
+        <div class="prefs-row__label">{{ strings.themeTitle }}</div>
+        <div class="segmented">
+          <button class="segmented__btn" :class="{ 'is-active': themeMode === 'light' }" type="button" @click="settingsStore.setThemeMode('light')">
+            <Icon name="sun" :size="12" />
           </button>
-          <button v-else class="outline-button settings-logout-button" type="button" @click="signIn">
-            {{ strings.signInLabel }}
+          <button class="segmented__btn" :class="{ 'is-active': themeMode === 'dark' }" type="button" @click="settingsStore.setThemeMode('dark')">
+            <Icon name="moon" :size="12" />
           </button>
         </div>
       </div>
+    </div>
+
+    <!-- Sync -->
+    <section class="surface-card sync-card">
+      <div class="sync-card__header">
+        <strong>{{ strings.syncTitle }}</strong>
+        <span class="chip" :class="effectiveOnline && canSync ? 'chip--pos' : 'chip--neg'">{{ syncStatusText }}</span>
+      </div>
+      <span class="muted sync-card__sub">{{ lastCheckedLabel }}</span>
+      <span class="muted">{{ syncSupportingText }}</span>
+      <button class="outline-button sync-card__action" type="button" :disabled="isCheckingHealth" @click="canSync ? appShellStore.refreshConnectionStatus() : signIn()">
+        {{ !canSync ? strings.signInLabel : (isCheckingHealth ? strings.syncInProgress : strings.syncNow) }}
+      </button>
     </section>
 
-    <section class="settings-section-card">
-      <div class="settings-sync-card">
-        <div class="settings-sync-card__header">
-          <strong class="settings-section-title">{{ strings.syncTitle }}</strong>
-          <span class="settings-status-badge" :class="{ 'is-online': effectiveOnline && canSync, 'is-offline': !effectiveOnline || !canSync }">
-            {{ syncStatusText }}
-          </span>
-        </div>
-        <div class="settings-sync-card__body">
-          <strong class="settings-sync-card__timestamp">{{ lastCheckedLabel }}</strong>
-          <span class="muted settings-sync-card__support">{{ syncSupportingText }}</span>
-        </div>
-        <button class="outline-button settings-sync-card__action" type="button" :disabled="isCheckingHealth" @click="canSync ? appShellStore.refreshConnectionStatus() : signIn()">
-          {{ !canSync ? strings.signInLabel : (isCheckingHealth ? strings.syncInProgress : strings.syncNow) }}
-        </button>
-      </div>
-    </section>
-
-    <section class="settings-section-card settings-choice-card">
-      <div class="settings-choice-card__body">
-        <strong class="settings-section-title">{{ strings.languageTitle }}</strong>
-        <div class="muted settings-choice-card__subtitle">{{ strings.languageSubtitle }}</div>
-      </div>
-      <div class="settings-chip-row settings-choice-card__chips">
-        <button class="setting-option" :class="{ 'is-selected': language === 'fa' }" type="button" @click="settingsStore.setLanguage('fa')">
-          {{ strings.persianLabel }}
-        </button>
-        <button class="setting-option" :class="{ 'is-selected': language === 'en' }" type="button" @click="settingsStore.setLanguage('en')">
-          {{ strings.englishLabel }}
-        </button>
-      </div>
-    </section>
-
-    <section class="settings-section-card settings-choice-card">
-      <div class="settings-choice-card__body">
-        <strong class="settings-section-title">{{ strings.themeTitle }}</strong>
-        <div class="muted settings-choice-card__subtitle">{{ strings.themeSubtitle }}</div>
-      </div>
-      <div class="settings-chip-row settings-choice-card__chips">
-        <button class="setting-option" :class="{ 'is-selected': themeMode === 'light' }" type="button" @click="settingsStore.setThemeMode('light')">
-          {{ strings.lightLabel }}
-        </button>
-        <button class="setting-option" :class="{ 'is-selected': themeMode === 'dark' }" type="button" @click="settingsStore.setThemeMode('dark')">
-          {{ strings.darkLabel }}
-        </button>
-      </div>
-    </section>
-
-    <button class="settings-link-card" type="button" @click="router.push('/download-app')">
-      <div class="settings-link-card__icon">⬇</div>
-      <div class="page-stack" style="gap: 4px; text-align: start;">
+    <!-- Download -->
+    <button class="settings-link" type="button" @click="router.push('/download-app')">
+      <span class="settings-link__icon" aria-hidden="true">
+        <Icon name="download" :size="18" />
+      </span>
+      <div class="settings-link__body">
         <strong>{{ strings.downloadApplicationTitle }}</strong>
         <span class="muted">{{ strings.downloadApplicationSubtitle }}</span>
       </div>
-      <span class="settings-link-card__arrow">{{ settingsLinkArrow }}</span>
+      <span class="settings-link__chev">
+        <Icon :name="isRtl ? 'chevron-left' : 'chevron-right'" :size="14" />
+      </span>
     </button>
+
+    <!-- Sign out / Sign in -->
+    <button v-if="user" class="outline-button is-danger" type="button" @click="signOut">{{ strings.logoutLabel }}</button>
+    <button v-else class="filled-button" type="button" @click="signIn">{{ strings.signInLabel }}</button>
   </div>
 </template>
 
 <style scoped>
-.settings-sync-card {
+.settings-page { padding-top: 2px; }
+
+.account-row {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.settings-sync-card__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.settings-sync-card__body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.settings-sync-card__timestamp {
-  line-height: 1.7;
-}
-
-.settings-sync-card__support {
-  line-height: 1.8;
-}
-
-.settings-sync-card__action {
-  width: 100%;
-}
-
-.settings-status-badge {
-  min-height: 30px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
-  background: var(--color-status-settled-bg);
-  color: var(--color-status-settled);
-}
-
-.settings-status-badge.is-online {
-  background: var(--color-status-creditor-bg);
-  color: var(--color-status-creditor);
-}
-
-.settings-status-badge.is-offline {
-  background: color-mix(in srgb, var(--color-error) 14%, transparent);
-  color: var(--color-error);
-}
-
-.settings-choice-card {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.settings-choice-card__body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.settings-choice-card__subtitle {
-  line-height: 1.8;
-}
-
-.settings-choice-card__chips {
-  justify-content: flex-start;
   align-items: center;
+  gap: var(--s-4);
 }
-
-.settings-link-card {
-  width: 100%;
-  padding: 18px;
-  border-radius: 22px;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 24%, var(--color-outline));
-  background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--color-primary) 18%, transparent), transparent 48%),
-    linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 10%, var(--color-surface)), var(--color-surface));
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 14px;
-  align-items: center;
-  color: var(--color-on-surface);
-  text-align: start;
-  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+.account-row__meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
-
-.settings-link-card__icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 18px;
-  display: grid;
-  place-items: center;
-  background: color-mix(in srgb, var(--color-primary) 16%, white);
-  color: var(--color-primary);
-  font-size: 24px;
+.account-row__meta strong {
+  font-size: var(--t-body);
+  font-weight: var(--fw-semibold);
 }
-
-.settings-link-card__arrow {
-  color: var(--color-primary);
-  font-size: 22px;
-  line-height: 1;
-  align-self: center;
-}
-
-.settings-account-phone {
+.account-row__phone {
   direction: ltr;
   unicode-bidi: plaintext;
   font-variant-numeric: tabular-nums;
 }
 
-.settings-account-verification {
-  display: inline-flex;
+.prefs-group {
+  padding: 0;
+  overflow: hidden;
+}
+.prefs-row {
+  padding: var(--s-4) var(--s-5);
+  display: flex;
   align-items: center;
-  width: fit-content;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
-  color: var(--color-primary);
+  gap: var(--s-4);
+  border-bottom: 1px solid var(--divider);
+}
+.prefs-row:last-of-type { border-bottom: 0; }
+.prefs-row__label {
+  flex: 1;
+  font-size: var(--t-body);
 }
 
-@media (max-width: 560px) {
-  .settings-sync-card__header {
-    gap: 10px;
-  }
+.sync-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.sync-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-1);
+}
+.sync-card__sub {
+  font-size: var(--t-caption);
+}
+.sync-card__action {
+  margin-top: var(--s-3);
+  width: 100%;
+}
+
+.settings-link {
+  width: 100%;
+  padding: var(--s-5);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-1);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--s-4);
+  align-items: center;
+  color: var(--fg);
+  text-align: start;
+  cursor: pointer;
+}
+.settings-link__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.settings-link__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.settings-link__body strong {
+  font-size: var(--t-body);
+  font-weight: var(--fw-semibold);
+}
+.settings-link__chev {
+  color: var(--fg-subtle);
+  display: inline-flex;
 }
 </style>

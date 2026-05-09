@@ -2,19 +2,18 @@
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import HeroCard from '@/shared/components/HeroCard.vue'
-import PasswordField from '@/shared/components/PasswordField.vue'
 import { ApiError } from '@/shared/api/client'
 import { useAuthStore } from '@/shared/stores/auth'
 import { useSettingsStore } from '@/shared/stores/settings'
-import { fillOtpDigitsFromInput, mergeOtpDigits, normalizeOtpDigit, normalizePhoneCandidate, normalizePhoneInput } from '@/modules/auth/phoneVerification'
+import { fillOtpDigitsFromInput, mergeOtpDigits, normalizeOtpDigit, normalizePhoneCandidate } from '@/modules/auth/phoneVerification'
+import Icon from '@/shared/components/Icon.vue'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const settingsStore = useSettingsStore()
 
-const { strings } = storeToRefs(settingsStore)
+const { strings, language } = storeToRefs(settingsStore)
 const { isSubmitting } = storeToRefs(authStore)
 
 const form = reactive({
@@ -37,8 +36,12 @@ const countdownSeconds = ref(0)
 const invitedInitialized = ref(false)
 const invitedRequiresPhoneVerification = ref(false)
 const invitedPhoneVerified = ref(false)
+const showCurrent = ref(false)
+const showNew = ref(false)
+const showConfirm = ref(false)
 let countdownTimer: number | null = null
 
+const isRtl = computed(() => language.value === 'fa')
 const isForgotPasswordMode = computed(() => route.meta.authMode === 'forgot-password')
 const isInvitedAccountMode = computed(() => route.meta.authMode === 'invited-account')
 const invitedToken = computed(() => (typeof route.query.token === 'string' ? route.query.token : ''))
@@ -69,16 +72,12 @@ const heroTitle = computed(() => {
 const heroSubtitle = computed(() => {
   if (!isForgotPasswordMode.value && !isInvitedAccountMode.value) return strings.value.changePasswordSubtitle
   if (isInvitedAccountMode.value) {
-    if (isCodeStep.value) {
-      return maskedPhoneNumber.value ? `${strings.value.invitedAccountCodeSubtitle} ${maskedPhoneNumber.value}` : strings.value.invitedAccountCodeSubtitle
-    }
+    if (isCodeStep.value) return strings.value.invitedAccountCodeSubtitle
     if (isResetStep.value) return strings.value.invitedAccountResetSubtitle
     return strings.value.invitedAccountSubtitle
   }
   if (isIdentifierStep.value) return strings.value.forgotPasswordSubtitle
-  if (isCodeStep.value) {
-    return maskedPhoneNumber.value ? `${strings.value.forgotPasswordCodeSubtitle} ${maskedPhoneNumber.value}` : strings.value.forgotPasswordCodeSubtitle
-  }
+  if (isCodeStep.value) return strings.value.forgotPasswordCodeSubtitle
   return strings.value.forgotPasswordResetSubtitle
 })
 
@@ -96,8 +95,25 @@ const loadingLabel = computed(() => {
 })
 
 const otpValue = computed(() => mergeOtpDigits(otpDigits.value))
-const canSubmitResetCode = computed(() => otpValue.value.length === otpDigits.value.length && !verifySubmitting.value)
 const canResendCode = computed(() => countdownSeconds.value <= 0 && !resendSubmitting.value && !requestSubmitting.value)
+
+const isChangePasswordMode = computed(() => !isForgotPasswordMode.value && !isInvitedAccountMode.value)
+
+function stepLabel(current: number, total: number) {
+  if (isRtl.value) {
+    const toFa = (n: number) => String(n).replace(/[0-9]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[Number(d)])
+    return `مرحله ${toFa(current)} از ${toFa(total)}`
+  }
+  return `Step ${current} of ${total}`
+}
+
+const transitionKey = computed(() => {
+  if (isChangePasswordMode.value) return 'change-password'
+  if (isCodeStep.value) return 'code'
+  if (isResetStep.value) return 'reset'
+  if (isIdentifierStep.value) return 'identifier'
+  return 'invited-init'
+})
 
 watch(
   () => route.fullPath,
@@ -175,7 +191,7 @@ function startCountdown(seconds: number) {
   }, 1000)
 }
 
-function setOtpRef(index: number, element: Element | null) {
+function setOtpRef(index: number, element: unknown) {
   otpRefs.value[index] = element instanceof HTMLInputElement ? element : null
 }
 
@@ -190,6 +206,7 @@ function onOtpInput(index: number, value: string) {
   if (normalized && index < otpDigits.value.length - 1) {
     focusOtp(index + 1)
   }
+  maybeAutoSubmitOtp()
 }
 
 function onOtpKeydown(index: number, event: KeyboardEvent) {
@@ -201,7 +218,12 @@ function onOtpKeydown(index: number, event: KeyboardEvent) {
   }
   if (index > 0) {
     event.preventDefault()
-    focusOtp(index - 1)
+    otpDigits.value[index - 1] = ''
+    const prev = otpRefs.value[index - 1]
+    if (prev) {
+      prev.value = ''
+      prev.focus()
+    }
   }
 }
 
@@ -212,6 +234,19 @@ function onOtpPaste(event: ClipboardEvent) {
   event.preventDefault()
   otpDigits.value = digits
   focusOtp(digits.reduce((last, digit, index) => (digit ? index : last), 0))
+  maybeAutoSubmitOtp()
+}
+
+let autoSubmitGuard = false
+function maybeAutoSubmitOtp() {
+  if (!isCodeStep.value) return
+  if (autoSubmitGuard || verifySubmitting.value) return
+  if (otpDigits.value.some((digit) => !digit)) return
+  autoSubmitGuard = true
+  window.setTimeout(() => {
+    autoSubmitGuard = false
+    submit()
+  }, 80)
 }
 
 async function submit() {
@@ -281,7 +316,6 @@ async function submitForgotPasswordRequest() {
     })
     requestedIdentifier.value = form.identifier.trim()
     maskedPhoneNumber.value = response.masked_phone_number
-    infoMessage.value = strings.value.phoneVerificationCodeSent
     otpDigits.value = ['', '', '', '', '']
     startCountdown(response.resend_available_in_seconds)
     await nextTick()
@@ -310,6 +344,9 @@ async function submitForgotPasswordVerify() {
     form.confirmNewPassword = ''
   } catch (error) {
     errorMessage.value = resolveForgotPasswordError(error)
+    otpDigits.value = ['', '', '', '', '']
+    await nextTick()
+    focusOtp(0)
   } finally {
     verifySubmitting.value = false
   }
@@ -360,6 +397,9 @@ async function submitInvitedAccountVerify() {
     otpDigits.value = ['', '', '', '', '']
   } catch (error) {
     errorMessage.value = resolveInvitedAccountError(error)
+    otpDigits.value = ['', '', '', '', '']
+    await nextTick()
+    focusOtp(0)
   } finally {
     verifySubmitting.value = false
   }
@@ -464,6 +504,12 @@ function resolveInvitedAccountError(error: unknown) {
   return strings.value.invitedAccountRequestFailed
 }
 
+function backToIdentifier() {
+  requestedIdentifier.value = ''
+  otpDigits.value = ['', '', '', '', '']
+  stopCountdown()
+}
+
 onBeforeUnmount(() => {
   stopCountdown()
 })
@@ -471,162 +517,297 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="page-shell auth-page-shell">
-    <div class="auth-card surface-card page-stack auth-form-card">
-      <HeroCard :title="heroTitle" :subtitle="heroSubtitle" icon="◍" />
+    <Transition name="auth-screen-fade" mode="out-in">
+      <div :key="transitionKey" class="auth-screen">
+        <!-- Change password (authenticated user) -->
+        <template v-if="isChangePasswordMode">
+          <div class="auth-icon-badge" aria-hidden="true">
+            <Icon name="lock" :size="24" />
+          </div>
 
-      <template v-if="!isForgotPasswordMode && !isInvitedAccountMode">
-        <div class="form-field">
-          <label class="form-field__label">{{ strings.currentPasswordLabel }}</label>
-          <PasswordField
-            v-model="form.currentPassword"
-            autocomplete="current-password"
-            :disabled="isSubmitting"
-            :show-label="strings.showPasswordLabel"
-            :hide-label="strings.hidePasswordLabel"
-          />
-        </div>
-        <div class="form-field">
-          <label class="form-field__label">{{ strings.newPasswordLabel }}</label>
-          <PasswordField
-            v-model="form.newPassword"
-            autocomplete="new-password"
-            :disabled="isSubmitting"
-            :show-label="strings.showPasswordLabel"
-            :hide-label="strings.hidePasswordLabel"
-          />
-        </div>
-      </template>
+          <h1 class="auth-title">{{ heroTitle }}</h1>
+          <p class="auth-subtitle">{{ heroSubtitle }}</p>
 
-      <template v-else-if="isIdentifierStep">
-        <div class="form-field">
-          <label class="form-field__label">{{ strings.forgotPasswordIdentifierLabel }}</label>
-          <input
-            v-model="form.identifier"
-            class="text-input"
-            type="text"
-            autocomplete="username"
-            :placeholder="strings.forgotPasswordIdentifierPlaceholder"
-            :disabled="requestSubmitting"
-          />
-        </div>
-      </template>
+          <div class="auth-field">
+            <label class="auth-field__label" for="cp-current">{{ strings.currentPasswordLabel }}</label>
+            <div class="auth-input-wrap">
+              <span class="auth-input__icon" aria-hidden="true">
+                <Icon name="lock" :size="18" />
+              </span>
+              <input
+                id="cp-current"
+                v-model="form.currentPassword"
+                class="auth-input auth-input--with-icon auth-input--with-trailing"
+                :type="showCurrent ? 'text' : 'password'"
+                autocomplete="current-password"
+                :disabled="isSubmitting"
+              />
+              <button class="auth-input__trailing" type="button" :aria-label="showCurrent ? strings.hidePasswordLabel : strings.showPasswordLabel" :disabled="isSubmitting" @click="showCurrent = !showCurrent">
+                <Icon name="eye" :size="18" />
+              </button>
+            </div>
+          </div>
 
-      <template v-else-if="isCodeStep">
-        <div class="form-field">
-          <label class="form-field__label">{{ strings.phoneVerificationCodeLabel }}</label>
-          <div class="auth-verification__otp" @paste="onOtpPaste">
+          <div class="auth-field">
+            <label class="auth-field__label" for="cp-new">{{ strings.newPasswordLabel }}</label>
+            <div class="auth-input-wrap">
+              <span class="auth-input__icon" aria-hidden="true">
+                <Icon name="lock" :size="18" />
+              </span>
+              <input
+                id="cp-new"
+                v-model="form.newPassword"
+                class="auth-input auth-input--with-icon auth-input--with-trailing"
+                :type="showNew ? 'text' : 'password'"
+                autocomplete="new-password"
+                :disabled="isSubmitting"
+              />
+              <button class="auth-input__trailing" type="button" :aria-label="showNew ? strings.hidePasswordLabel : strings.showPasswordLabel" :disabled="isSubmitting" @click="showNew = !showNew">
+                <Icon name="eye" :size="18" />
+              </button>
+            </div>
+          </div>
+
+          <Transition name="auth-error-transition">
+            <div v-if="errorMessage" class="auth-alert auth-alert--error" role="alert">
+              <strong>{{ strings.authErrorTitle }}</strong>
+              <span>{{ errorMessage }}</span>
+            </div>
+          </Transition>
+
+          <button class="auth-cta" type="button" :disabled="isSubmitting" @click="submit">
+            <span v-if="isSubmitting" class="button-loader" aria-hidden="true"></span>
+            {{ isSubmitting ? loadingLabel : strings.changePasswordAction }}
+          </button>
+        </template>
+
+        <!-- Forgot password — request identifier -->
+        <template v-else-if="isIdentifierStep">
+          <RouterLink to="/auth/login" class="auth-back-link">
+            <Icon :name="isRtl ? 'arrow-right' : 'arrow-left'" :size="18" />
+            {{ strings.goToLogin }}
+          </RouterLink>
+
+          <div class="auth-icon-badge" aria-hidden="true">
+            <Icon name="lock" :size="24" />
+          </div>
+
+          <div class="auth-title-row">
+            <h1 class="auth-title">{{ heroTitle }}</h1>
+            <span class="auth-step-pill">
+              <span class="auth-step-pill__dot"></span>
+              <span>{{ stepLabel(1, 3) }}</span>
+            </span>
+          </div>
+          <p class="auth-subtitle">{{ heroSubtitle }}</p>
+
+          <div class="auth-field">
+            <label class="auth-field__label" for="forgot-identifier">{{ strings.forgotPasswordIdentifierLabel }}</label>
+            <input
+              id="forgot-identifier"
+              v-model="form.identifier"
+              class="auth-input"
+              type="text"
+              autocomplete="username"
+              :placeholder="strings.forgotPasswordIdentifierPlaceholder"
+              :disabled="requestSubmitting"
+            />
+          </div>
+
+          <Transition name="auth-error-transition">
+            <div v-if="errorMessage" class="auth-alert auth-alert--error" role="alert">
+              <strong>{{ strings.authErrorTitle }}</strong>
+              <span>{{ errorMessage }}</span>
+            </div>
+          </Transition>
+
+          <button class="auth-cta" type="button" :disabled="requestSubmitting" @click="submit">
+            <span v-if="requestSubmitting" class="button-loader" aria-hidden="true"></span>
+            <span>{{ requestSubmitting ? loadingLabel : strings.forgotPasswordRequestAction }}</span>
+            <Icon v-if="!requestSubmitting" :name="isRtl ? 'arrow-left' : 'arrow-right'" :size="18" />
+          </button>
+        </template>
+
+        <!-- Code step (forgot password OR invited account) -->
+        <template v-else-if="isCodeStep">
+          <button class="auth-back-link" type="button" :disabled="verifySubmitting || requestSubmitting" @click="isForgotPasswordMode ? backToIdentifier() : router.replace('/auth/login')">
+            <Icon :name="isRtl ? 'arrow-right' : 'arrow-left'" :size="18" />
+            {{ isForgotPasswordMode ? strings.forgotPasswordCodeBackLabel : strings.goToLogin }}
+          </button>
+
+          <div class="auth-title-row">
+            <h1 class="auth-title">{{ heroTitle }}</h1>
+            <span class="auth-step-pill auth-step-pill--accent">
+              <span class="auth-step-pill__dot"></span>
+              <span>{{ stepLabel(2, isInvitedAccountMode ? 2 : 3) }}</span>
+            </span>
+          </div>
+          <p class="auth-subtitle">
+            {{ heroSubtitle }}
+            <bdi v-if="maskedPhoneNumber" class="num auth-phone-callout">{{ maskedPhoneNumber }}</bdi>
+          </p>
+
+          <div class="auth-otp-grid" @paste="onOtpPaste">
             <input
               v-for="(_, index) in otpDigits"
-              :key="`forgot-password-digit-${index}`"
+              :key="`reset-digit-${index}`"
               :ref="(element) => setOtpRef(index, element)"
               :value="otpDigits[index]"
-              class="text-input auth-verification__otp-input"
+              class="auth-otp-cell"
+              :class="{ 'is-filled': !!otpDigits[index] }"
               type="text"
               inputmode="numeric"
               maxlength="1"
+              :disabled="verifySubmitting"
               @input="onOtpInput(index, ($event.target as HTMLInputElement).value)"
               @keydown="onOtpKeydown(index, $event)"
             />
           </div>
-        </div>
-        <button class="outline-button" type="button" :disabled="!canResendCode" @click="resendCode">
-          {{
-            countdownSeconds > 0
-              ? strings.phoneVerificationResendCountdown.replace('{seconds}', String(countdownSeconds))
-              : strings.phoneVerificationResendAction
-          }}
-        </button>
-      </template>
 
-      <template v-else>
-        <div class="form-field">
-          <label class="form-field__label">{{ strings.newPasswordLabel }}</label>
-          <PasswordField
-            v-model="form.newPassword"
-            autocomplete="new-password"
-            :disabled="isSubmitting"
-            :show-label="strings.showPasswordLabel"
-            :hide-label="strings.hidePasswordLabel"
-          />
-        </div>
-        <div class="form-field">
-          <label class="form-field__label">{{ strings.forgotPasswordConfirmPasswordLabel }}</label>
-          <PasswordField
-            v-model="form.confirmNewPassword"
-            autocomplete="new-password"
-            :disabled="isSubmitting"
-            :show-label="strings.showPasswordLabel"
-            :hide-label="strings.hidePasswordLabel"
-          />
-        </div>
-      </template>
+          <Transition name="auth-error-transition">
+            <div v-if="errorMessage" class="auth-alert auth-alert--error" role="alert">
+              <strong>{{ strings.authErrorTitle }}</strong>
+              <span>{{ errorMessage }}</span>
+            </div>
+          </Transition>
 
-      <Transition name="auth-error-transition">
-        <div v-if="errorMessage" class="auth-alert auth-alert--error" role="alert">
-          <strong>{{ strings.authErrorTitle }}</strong>
-          <span>{{ errorMessage }}</span>
-        </div>
-      </Transition>
+          <button class="auth-cta" type="button" :disabled="verifySubmitting" @click="submit">
+            <span v-if="verifySubmitting" class="button-loader" aria-hidden="true"></span>
+            {{ verifySubmitting ? loadingLabel : strings.forgotPasswordVerifyAction }}
+          </button>
 
-      <Transition name="auth-error-transition">
-        <div v-if="infoMessage" class="auth-alert" role="status">
-          <span>{{ infoMessage }}</span>
-        </div>
-      </Transition>
+          <div class="auth-resend-row">
+            <template v-if="countdownSeconds > 0">
+              <Icon name="refresh" :size="16" />
+              <span>{{ strings.resendInLabel }}</span>
+              <span class="num">0:{{ String(countdownSeconds).padStart(2, '0') }}</span>
+            </template>
+            <button v-else type="button" :disabled="!canResendCode" @click="resendCode">
+              <Icon name="refresh" :size="16" />
+              {{ strings.resendCodeLabel }}
+            </button>
+          </div>
+        </template>
 
-      <button class="filled-button" type="button" :disabled="isSubmitting || requestSubmitting || verifySubmitting" @click="submit">
-        <span v-if="isSubmitting || requestSubmitting || verifySubmitting" class="button-loader" aria-hidden="true"></span>
-        {{
-          (isSubmitting || requestSubmitting || verifySubmitting)
-            ? loadingLabel
-            : (!isForgotPasswordMode && !isInvitedAccountMode)
-              ? strings.changePasswordAction
-              : isInvitedAccountMode
-                ? isCodeStep
-                  ? strings.forgotPasswordVerifyAction
-                  : strings.forgotPasswordConfirmAction
-                : isIdentifierStep
-                ? strings.forgotPasswordRequestAction
-                : isCodeStep
-                  ? strings.forgotPasswordVerifyAction
-                  : strings.forgotPasswordConfirmAction
-        }}
-      </button>
+        <!-- Reset step (set new password) -->
+        <template v-else-if="isResetStep">
+          <div class="auth-icon-badge" aria-hidden="true">
+            <Icon name="shield" :size="24" />
+          </div>
 
-      <RouterLink v-if="isForgotPasswordMode || isInvitedAccountMode" to="/auth/login" class="auth-link">{{ strings.goToLogin }}</RouterLink>
-    </div>
+          <div class="auth-title-row">
+            <h1 class="auth-title">{{ heroTitle }}</h1>
+            <span v-if="isForgotPasswordMode" class="auth-step-pill">
+              <span class="auth-step-pill__dot"></span>
+              <span>{{ stepLabel(3, 3) }}</span>
+            </span>
+          </div>
+          <p class="auth-subtitle">{{ heroSubtitle }}</p>
+
+          <div class="auth-field">
+            <label class="auth-field__label" for="reset-new">{{ strings.newPasswordLabel }}</label>
+            <div class="auth-input-wrap">
+              <span class="auth-input__icon" aria-hidden="true">
+                <Icon name="lock" :size="18" />
+              </span>
+              <input
+                id="reset-new"
+                v-model="form.newPassword"
+                class="auth-input auth-input--with-icon auth-input--with-trailing"
+                :type="showNew ? 'text' : 'password'"
+                autocomplete="new-password"
+                :disabled="isSubmitting"
+              />
+              <button class="auth-input__trailing" type="button" :aria-label="showNew ? strings.hidePasswordLabel : strings.showPasswordLabel" :disabled="isSubmitting" @click="showNew = !showNew">
+                <Icon name="eye" :size="18" />
+              </button>
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <label class="auth-field__label" for="reset-confirm">{{ strings.forgotPasswordConfirmPasswordLabel }}</label>
+            <div class="auth-input-wrap">
+              <span class="auth-input__icon" aria-hidden="true">
+                <Icon name="lock" :size="18" />
+              </span>
+              <input
+                id="reset-confirm"
+                v-model="form.confirmNewPassword"
+                class="auth-input auth-input--with-icon auth-input--with-trailing"
+                :type="showConfirm ? 'text' : 'password'"
+                autocomplete="new-password"
+                :disabled="isSubmitting"
+              />
+              <button class="auth-input__trailing" type="button" :aria-label="showConfirm ? strings.hidePasswordLabel : strings.showPasswordLabel" :disabled="isSubmitting" @click="showConfirm = !showConfirm">
+                <Icon name="eye" :size="18" />
+              </button>
+            </div>
+          </div>
+
+          <Transition name="auth-error-transition">
+            <div v-if="errorMessage" class="auth-alert auth-alert--error" role="alert">
+              <strong>{{ strings.authErrorTitle }}</strong>
+              <span>{{ errorMessage }}</span>
+            </div>
+          </Transition>
+
+          <button class="auth-cta" type="button" :disabled="isSubmitting" @click="submit">
+            <span v-if="isSubmitting" class="button-loader" aria-hidden="true"></span>
+            {{ isSubmitting ? loadingLabel : strings.forgotPasswordConfirmAction }}
+          </button>
+        </template>
+
+        <!-- Invited account preparing (rare fallback) -->
+        <template v-else>
+          <div class="auth-icon-badge" aria-hidden="true">
+            <Icon name="plus" :size="24" />
+          </div>
+          <h1 class="auth-title">{{ heroTitle }}</h1>
+          <p class="auth-subtitle">{{ heroSubtitle }}</p>
+          <Transition name="auth-error-transition">
+            <div v-if="errorMessage" class="auth-alert auth-alert--error" role="alert">
+              <strong>{{ strings.authErrorTitle }}</strong>
+              <span>{{ errorMessage }}</span>
+            </div>
+          </Transition>
+          <div class="auth-resend-row">
+            <span class="button-loader" aria-hidden="true" style="border-color: color-mix(in srgb, var(--brand) 30%, transparent); border-top-color: var(--brand);"></span>
+            <span>{{ strings.invitedAccountPreparingLoading }}</span>
+          </div>
+        </template>
+
+        <div v-if="isForgotPasswordMode || isInvitedAccountMode" class="auth-spacer"></div>
+        <RouterLink v-if="(isForgotPasswordMode || isInvitedAccountMode) && !isIdentifierStep && !isCodeStep" to="/auth/login" class="auth-link--inline" style="align-self: center;">
+          {{ strings.goToLogin }}
+        </RouterLink>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <style scoped>
-.auth-form-card {
-  gap: 18px;
+.auth-screen-fade-enter-active,
+.auth-screen-fade-leave-active {
+  transition: opacity var(--d-base) var(--ease-emphasized), transform var(--d-base) var(--ease-emphasized);
+}
+.auth-screen-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px) scale(0.99);
+}
+.auth-screen-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.99);
 }
 
-.text-input {
-  border-radius: 22px;
-  min-height: 54px;
-  padding-inline: 18px;
-}
+.auth-screen .auth-field:nth-of-type(1) { --rise-step: 1; }
+.auth-screen .auth-field:nth-of-type(2) { --rise-step: 2; }
+.auth-screen .auth-field:nth-of-type(3) { --rise-step: 3; }
+.auth-field { animation-delay: calc(var(--rise-step, 0) * 60ms); }
 
-:deep(.password-field__input) {
-  border-radius: 22px;
-  min-height: 54px;
-  padding-inline: 18px;
-  padding-inline-end: 52px;
-}
-
-.auth-verification__otp {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
+.auth-phone-callout {
+  display: inline;
   direction: ltr;
-}
-
-.auth-verification__otp-input {
-  text-align: center;
-  font-size: 20px;
-  line-height: 28px;
-  font-weight: 700;
+  font-weight: var(--fw-semibold);
+  color: var(--fg);
 }
 </style>

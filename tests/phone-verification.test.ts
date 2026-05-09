@@ -56,7 +56,7 @@ describe('PhoneVerificationModal', () => {
     await wrapper.get('button.filled-button').trigger('click')
 
     expect(authStore.requestPhoneVerification).toHaveBeenCalledWith({ phone_number: '09120000000' })
-    expect(wrapper.text()).toContain('The verification code has been sent.')
+    expect(wrapper.text()).toContain('Verify code')
 
     const otpContainer = wrapper.get('.phone-verification-modal__otp')
     await otpContainer.trigger('paste', {

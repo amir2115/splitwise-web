@@ -14,6 +14,8 @@ import { useSettingsStore } from '@/shared/stores/settings'
 import { useSnackbarStore } from '@/shared/stores/snackbar'
 import type { MemberSuggestion } from '@/shared/api/types'
 import { formatDate } from '@/shared/utils/format'
+import UsernameHandle from '@/shared/components/UsernameHandle.vue'
+import Icon from '@/shared/components/Icon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -267,27 +269,30 @@ async function removeMember(id: string) {
 
 <template>
   <div class="page-shell page-stack">
-    <PageTopBar :title="`${strings.membersOfGroupPrefix} ${group?.name ?? ''}`" can-go-back @back="router.back()">
+    <PageTopBar :title="`${strings.membersOfGroupPrefix} ${group?.name ?? ''}`" can-go-back sticky @back="router.back()">
       <template #actions>
-        <button class="icon-button" type="button" @click="openCreate">＋</button>
+        <button class="topbar-add" type="button" :aria-label="strings.addMember" @click="openCreate">
+          <Icon name="plus" :size="18" />
+        </button>
       </template>
     </PageTopBar>
 
-    <div class="list-stack">
-      <article v-for="member in members" :key="member.id" class="surface-card" style="padding: 16px;">
-        <div class="detail-line detail-line--keep-row">
-          <div style="min-width: 0; flex: 1;">
-            <div class="page-topbar__title" style="font-size: 16px;">@{{ member.username }}</div>
-            <div class="muted">{{ formatDate(member.created_at, language) }}</div>
-            <div v-if="member.membership_status === 'PENDING_INVITE'" class="muted" style="margin-top: 4px;">{{ strings.pendingInviteLabel }}</div>
-          </div>
-          <div class="card-actions card-actions--inline">
-            <button class="icon-button" type="button" @click="openEdit(member.id, member.username)">✎</button>
-            <button class="icon-button" type="button" @click="removeMember(member.id)">🗑</button>
-          </div>
+    <div class="member-list">
+      <div v-for="member in members" :key="member.id" class="member-row">
+        <div class="member-avatar">{{ (member.username || '?').charAt(0).toUpperCase() }}</div>
+        <div class="member-row__body">
+          <strong class="member-row__name"><UsernameHandle :username="member.username" /></strong>
+          <span class="member-row__sub">{{ formatDate(member.created_at, language) }}</span>
         </div>
-      </article>
-      <EmptyStateCard v-if="members.length === 0" :title="strings.noMembersTitle" :subtitle="strings.noMembersSubtitle" />
+        <span v-if="member.membership_status === 'PENDING_INVITE'" class="chip chip--warn">{{ strings.pendingInviteLabel }}</span>
+        <button class="row-action" type="button" :aria-label="strings.edit" @click="openEdit(member.id, member.username)">
+          <Icon name="edit" :size="14" />
+        </button>
+        <button class="row-action row-action--danger" type="button" :aria-label="strings.delete" @click="removeMember(member.id)">
+          <Icon name="trash" :size="14" />
+        </button>
+      </div>
+      <EmptyStateCard v-if="members.length === 0" :title="strings.noMembersTitle" :subtitle="strings.noMembersSubtitle" icon="◎" />
     </div>
   </div>
 
@@ -331,7 +336,7 @@ async function removeMember(id: string) {
               @mousedown.prevent="applySuggestion(suggestion)"
               @mouseenter="setActiveIndex(index)"
             >
-              <span class="member-suggestion-option__username">@{{ suggestion.username }}</span>
+              <span class="member-suggestion-option__username"><UsernameHandle :username="suggestion.username" /></span>
               <span v-if="suggestion.name" class="member-suggestion-option__name">{{ suggestion.name }}</span>
             </button>
           </div>
@@ -390,6 +395,77 @@ async function removeMember(id: string) {
 </template>
 
 <style scoped>
+.topbar-add {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--brand-on);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  cursor: pointer;
+  box-shadow: var(--shadow-1);
+}
+.topbar-add:hover { background: var(--brand-strong); }
+
+.member-list {
+  display: flex;
+  flex-direction: column;
+}
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) 0;
+  border-bottom: 1px solid var(--divider);
+}
+.member-row:last-child { border-bottom: 0; }
+.member-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-weight: var(--fw-semibold);
+  font-family: var(--font-en);
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.member-row__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.member-row__name {
+  font-size: var(--t-body);
+  font-weight: var(--fw-medium);
+}
+.member-row__sub {
+  font-size: var(--t-caption);
+  color: var(--fg-subtle);
+}
+.row-action {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  color: var(--fg-subtle);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.row-action:hover { background: var(--surface-sunk); color: var(--fg); }
+.row-action--danger:hover { color: var(--neg); }
+
 .member-suggestion-field {
   display: grid;
   gap: 10px;

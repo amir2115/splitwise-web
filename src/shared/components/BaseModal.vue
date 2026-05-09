@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import Icon from '@/shared/components/Icon.vue'
+
 defineProps<{
   title: string
   dismissible?: boolean
@@ -13,7 +15,9 @@ const emit = defineEmits<{
   <div class="modal-backdrop" @click.self="dismissible !== false && emit('close')">
     <div class="modal-card" role="dialog" aria-modal="true">
       <div class="modal-card__header">
-        <button v-if="dismissible !== false" class="icon-button modal-card__close" type="button" @click="emit('close')">✕</button>
+        <button v-if="dismissible !== false" class="icon-button modal-card__close" type="button" @click="emit('close')">
+          <Icon name="close" :size="14" />
+        </button>
         <div v-else class="modal-card__spacer" aria-hidden="true"></div>
         <strong class="modal-card__title">{{ title }}</strong>
         <div class="modal-card__spacer" aria-hidden="true"></div>

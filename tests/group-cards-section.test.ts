@@ -11,6 +11,8 @@ const strings = {
   noGroupCardsTitle: 'No card numbers yet',
   noGroupCardsSubtitle: 'Add the first card number for this group.',
   cardOwnerLabel: 'Member',
+  cardholderLabel: 'Cardholder',
+  cardSelectMemberHint: 'Select a member',
   cardNumberLabel: 'Card number',
   copyCardNumber: 'Copy card number',
   cardCopied: 'Card number copied.',
@@ -83,7 +85,7 @@ describe('GroupCardsSection', () => {
       },
     })
 
-    expect(wrapper.text()).toContain('6037 9918 9975 4321')
+    expect(wrapper.findAll('.card-item__chunk').map((chunk) => chunk.text())).toEqual(['6037', '9918', '9975', '4321'])
     await wrapper.find('button[title="Copy card number"]').trigger('click')
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith('6037991899754321')
   })

@@ -112,3 +112,25 @@ export function deriveGroupBalances(params: {
     simplified_debts: simplifyDebts(normalizedBalances),
   }
 }
+
+export interface MemberBreakdownEntry {
+  transfer: GroupBalanceResponse['simplified_debts'][number]
+  other_member_id: string
+  kind: 'incoming' | 'outgoing'
+}
+
+export function projectMemberBreakdown(
+  memberId: string,
+  netBalance: number,
+  simplifiedDebts: GroupBalanceResponse['simplified_debts'],
+): MemberBreakdownEntry[] {
+  if (netBalance === 0) return []
+  if (netBalance > 0) {
+    return simplifiedDebts
+      .filter((transfer) => transfer.to_member_id === memberId)
+      .map((transfer) => ({ transfer, other_member_id: transfer.from_member_id, kind: 'incoming' as const }))
+  }
+  return simplifiedDebts
+    .filter((transfer) => transfer.from_member_id === memberId)
+    .map((transfer) => ({ transfer, other_member_id: transfer.to_member_id, kind: 'outgoing' as const }))
+}

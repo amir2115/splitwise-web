@@ -16,10 +16,28 @@ export interface ServiceChargeDraftUi {
   selectedMemberIds: string[]
 }
 
+export type AmountMode = 'percent' | 'amount'
+export type DiscountMode = AmountMode
+
+export interface DiscountDraft {
+  enabled: boolean
+  mode: DiscountMode
+  /** When `mode === 'percent'`, this is the percent value (0..100). Otherwise it's a fixed amount. */
+  valueInput: string
+}
+
+export interface TaxDraft {
+  enabled: boolean
+  mode: AmountMode
+  /** When `mode === 'percent'`, percent value (0..100). When `'amount'`, fixed extra Toman added on top. */
+  valueInput: string
+}
+
 export interface MemberCostBreakdown {
   baseShare: number
   taxShare: number
   serviceChargeShare: number
+  discountShare: number
   finalShare: number
 }
 
@@ -27,6 +45,7 @@ export interface ExpenseEditorComputedState {
   payerTotal: number
   baseShareTotal: number
   finalShareTotal: number
+  finalGrandTotal: number
   remainingPayerAmount: number
   remainingBaseShareAmount: number
   isPayerOverflow: boolean
@@ -34,8 +53,10 @@ export interface ExpenseEditorComputedState {
   taxAmountPreview: number
   baseAmountPreview: number
   serviceChargeTotalPreview: number
+  discountAmountPreview: number
   hasInvalidServiceCharges: boolean
   hasInvalidTaxPercent: boolean
+  hasInvalidDiscount: boolean
   memberBreakdowns: Record<string, MemberCostBreakdown>
 }
 
@@ -99,14 +120,27 @@ export function computeExpenseEditorState(params: {
   totalAmount: number
   splitType: SplitType
   members: ExpenseEditorMemberDraft[]
-  taxEnabled: boolean
-  taxPercentInput: string
+  /** Legacy boolean flag — used when `tax` is not provided. */
+  taxEnabled?: boolean
+  /** Legacy percent input — used when `tax` is not provided. */
+  taxPercentInput?: string
+  /** Modern tax draft (preferred). When provided, overrides `taxEnabled`/`taxPercentInput`. */
+  tax?: TaxDraft
   serviceCharges: ServiceChargeDraftUi[]
+  discount?: DiscountDraft
 }): ExpenseEditorComputedState {
-  const { totalAmount, splitType, members, taxEnabled, taxPercentInput, serviceCharges } = params
+  const { totalAmount, splitType, members, serviceCharges } = params
+  const tax: TaxDraft = params.tax ?? {
+    enabled: Boolean(params.taxEnabled),
+    mode: 'percent',
+    valueInput: params.taxPercentInput ?? '',
+  }
+  const discount: DiscountDraft = params.discount ?? { enabled: false, mode: 'percent', valueInput: '' }
   const payerTotal = members.reduce((sum, member) => sum + parseAmountInput(member.payerAmountInput), 0)
   const includedMembers = members.filter((member) => member.includedInSplit).sort((a, b) => a.memberId.localeCompare(b.memberId))
 
+  // A service charge is "active" if the user has typed *anything* in it. Empty rows
+  // (no title, no amount, no members) are ignored and don't trigger validation.
   const serviceChargeAllocations: ServiceChargeAllocation[] = serviceCharges.map((charge) => {
     const amount = parseAmountInput(charge.amountInput)
     const selectedIds = includedMembers.map((member) => member.memberId).filter((memberId) => charge.selectedMemberIds.includes(memberId))
@@ -119,22 +153,41 @@ export function computeExpenseEditorState(params: {
     }
   })
 
-  const hasInvalidServiceCharges =
-    serviceChargeAllocations.some((allocation) => allocation.charge.title || allocation.charge.amountInput || allocation.charge.selectedMemberIds.length > 0) &&
-    serviceChargeAllocations.some((allocation) => !allocation.isValid)
+  const hasInvalidServiceCharges = serviceChargeAllocations.some((allocation) => {
+    const c = allocation.charge
+    const isEmpty = !c.title.trim() && !c.amountInput && c.selectedMemberIds.length === 0
+    return !isEmpty && !allocation.isValid
+  })
 
   const serviceChargeTotalPreview = serviceChargeAllocations
     .filter((allocation) => allocation.isValid)
     .reduce((sum, allocation) => sum + allocation.amount, 0)
 
-  const taxPercentValue = parseAmountInput(taxPercentInput)
-  const hasInvalidTaxPercent = taxEnabled && taxPercentInput !== '' && (taxPercentValue < 0 || taxPercentValue > 100)
+  const taxValueRaw = parseAmountInput(tax.valueInput)
+  const hasInvalidTaxPercent =
+    tax.enabled &&
+    tax.valueInput !== '' &&
+    (
+      tax.mode === 'percent'
+        ? (taxValueRaw < 0 || taxValueRaw > 100)
+        : taxValueRaw < 0
+    )
+  // Two semantics:
+  // - mode === 'percent': tax is *included* in totalAmount; we extract base & tax (legacy).
+  // - mode === 'amount':   tax is an additional fixed amount added on top, services are still inside totalAmount.
   const taxableTotal = Math.max(totalAmount - serviceChargeTotalPreview, 0)
-  const taxAmountPreview =
-    !taxEnabled || taxableTotal <= 0 || hasInvalidTaxPercent
-      ? 0
-      : taxableTotal - Math.max(0, Math.min(taxableTotal, Math.round((taxableTotal * 100) / (100 + taxPercentValue))))
-  const baseAmountPreview = taxableTotal <= 0 ? 0 : taxableTotal - taxAmountPreview
+  let taxAmountPreview = 0
+  let baseAmountPreview = 0
+  if (!tax.enabled || taxableTotal <= 0 || hasInvalidTaxPercent || tax.valueInput === '') {
+    baseAmountPreview = taxableTotal
+  } else if (tax.mode === 'percent') {
+    taxAmountPreview = taxableTotal - Math.max(0, Math.min(taxableTotal, Math.round((taxableTotal * 100) / (100 + taxValueRaw))))
+    baseAmountPreview = taxableTotal - taxAmountPreview
+  } else {
+    // amount mode: tax is added on top of base. So base = taxableTotal (totalAmount - services), tax = fixed.
+    taxAmountPreview = Math.max(0, Math.min(taxValueRaw, Number.MAX_SAFE_INTEGER))
+    baseAmountPreview = taxableTotal
+  }
 
   const baseShares =
     splitType === 'EQUAL'
@@ -143,7 +196,7 @@ export function computeExpenseEditorState(params: {
 
   const baseShareTotal = Object.values(baseShares).reduce((sum, amount) => sum + amount, 0)
   const taxShares =
-    taxEnabled && taxAmountPreview > 0 && baseShareTotal > 0
+    tax.enabled && taxAmountPreview > 0 && baseShareTotal > 0
       ? distributeProportionally(
           taxAmountPreview,
           Object.fromEntries(Object.entries(baseShares).filter(([, amount]) => amount > 0)),
@@ -159,38 +212,90 @@ export function computeExpenseEditorState(params: {
       })
     })
 
+  // Pre-discount grand total. In percent mode, tax is already inside totalAmount.
+  // In amount mode, tax is added on top.
+  const preDiscountGrandTotal =
+    tax.enabled && tax.mode === 'amount' && !hasInvalidTaxPercent
+      ? totalAmount + taxAmountPreview
+      : totalAmount
+
+  // ---------- Discount ----------
+  const discountValue = parseAmountInput(discount.valueInput)
+  const hasInvalidDiscount =
+    discount.enabled &&
+    discount.valueInput !== '' &&
+    (
+      discount.mode === 'percent'
+        ? (discountValue < 0 || discountValue > 100)
+        : discountValue < 0 || discountValue > preDiscountGrandTotal
+    )
+
+  // Pre-discount total = baseShares + taxShares + serviceShares (for each member). We rely on
+  // the totalAmount input as the canonical pre-discount grand total. If member shares don't yet
+  // sum to it (e.g. EXACT mode mid-typing), discount is computed against `totalAmount` so the
+  // user sees the eventual final grand total.
+  const discountAmountPreview = (() => {
+    if (!discount.enabled || discount.valueInput === '' || hasInvalidDiscount || preDiscountGrandTotal <= 0) return 0
+    if (discount.mode === 'percent') {
+      const v = Math.min(100, Math.max(0, discountValue))
+      return Math.min(preDiscountGrandTotal, Math.round((preDiscountGrandTotal * v) / 100))
+    }
+    return Math.min(preDiscountGrandTotal, Math.max(0, discountValue))
+  })()
+
+  // Distribute discount proportionally to (base + tax + service) shares.
+  const preDiscountWeights = Object.fromEntries(
+    includedMembers.map((member) => {
+      const sum = (baseShares[member.memberId] ?? 0) + (taxShares[member.memberId] ?? 0) + (serviceShares[member.memberId] ?? 0)
+      return [member.memberId, sum]
+    }),
+  )
+  const totalPreDiscount = Object.values(preDiscountWeights).reduce((sum, value) => sum + value, 0)
+  const cappedDiscount = Math.min(discountAmountPreview, totalPreDiscount)
+  const discountShares =
+    cappedDiscount > 0 && totalPreDiscount > 0
+      ? distributeProportionally(cappedDiscount, preDiscountWeights)
+      : Object.fromEntries(includedMembers.map((member) => [member.memberId, 0]))
+
   const memberBreakdowns = Object.fromEntries(
     includedMembers.map((member) => {
       const baseShare = baseShares[member.memberId] ?? 0
       const taxShare = taxShares[member.memberId] ?? 0
       const serviceChargeShare = serviceShares[member.memberId] ?? 0
+      const discountShare = discountShares[member.memberId] ?? 0
+      const finalShare = Math.max(0, baseShare + taxShare + serviceChargeShare - discountShare)
       return [
         member.memberId,
         {
           baseShare,
           taxShare,
           serviceChargeShare,
-          finalShare: baseShare + taxShare + serviceChargeShare,
+          discountShare,
+          finalShare,
         },
       ]
     }),
   )
 
   const finalShareTotal = Object.values(memberBreakdowns).reduce((sum, breakdown) => sum + breakdown.finalShare, 0)
+  const finalGrandTotal = Math.max(0, preDiscountGrandTotal - cappedDiscount)
 
   return {
     payerTotal,
     baseShareTotal,
     finalShareTotal,
-    remainingPayerAmount: totalAmount - payerTotal,
+    finalGrandTotal,
+    remainingPayerAmount: finalGrandTotal - payerTotal,
     remainingBaseShareAmount: baseAmountPreview - baseShareTotal,
-    isPayerOverflow: payerTotal > totalAmount,
+    isPayerOverflow: payerTotal > finalGrandTotal,
     isBaseShareOverflow: baseShareTotal > baseAmountPreview,
     taxAmountPreview,
     baseAmountPreview,
     serviceChargeTotalPreview,
+    discountAmountPreview: cappedDiscount,
     hasInvalidServiceCharges,
     hasInvalidTaxPercent,
+    hasInvalidDiscount,
     memberBreakdowns,
   }
 }
