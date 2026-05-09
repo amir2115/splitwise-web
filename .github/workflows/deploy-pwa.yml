@@ -23,7 +23,8 @@ jobs:
 
           docker build \
             -t splitwise/web:local \
-            ./web
+            -f Dockerfile \
+            .
 
       - name: Import image into k3s
         run: |
