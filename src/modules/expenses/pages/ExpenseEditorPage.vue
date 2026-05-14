@@ -303,6 +303,7 @@ function syncDraftMembers() {
   const previousById = new Map(form.members.map((item) => [item.memberId, item]))
   const payers = new Map(existingExpense.value?.payers.map((item) => [item.member_id, item.amount]) ?? [])
   const shares = new Map(existingExpense.value?.shares.map((item) => [item.member_id, item.amount]) ?? [])
+  const weights = new Map(existingExpense.value?.shares.map((item) => [item.member_id, item.weight ?? null]) ?? [])
 
   form.members = members.value.map((member) => ({
     memberId: member.id,
@@ -310,6 +311,7 @@ function syncDraftMembers() {
     includedInSplit: previousById.get(member.id)?.includedInSplit ?? (shares.has(member.id) || !isEdit.value),
     payerAmountInput: previousById.get(member.id)?.payerAmountInput ?? (payers.has(member.id) ? String(payers.get(member.id) ?? '') : ''),
     exactShareInput: previousById.get(member.id)?.exactShareInput ?? (shares.has(member.id) ? String(shares.get(member.id) ?? '') : ''),
+    weight: previousById.get(member.id)?.weight ?? (weights.has(member.id) ? (weights.get(member.id) ?? null) : null),
   }))
 }
 
@@ -324,7 +326,9 @@ onMounted(async () => {
       form.title = existingExpense.value.title
       form.note = existingExpense.value.note ?? ''
       form.totalAmountInput = String(existingExpense.value.total_amount)
-      form.splitType = existingExpense.value.split_type
+      const savedSplitType = existingExpense.value.split_type
+      const hasShareWeights = existingExpense.value.shares.some((s) => s.weight != null && s.weight > 0)
+      form.splitType = savedSplitType === 'SHARE' || hasShareWeights ? 'SHARE' : savedSplitType
       if (form.note) noteOpen.value = true
     }
 
@@ -1049,7 +1053,7 @@ async function submit() {
       : form.splitType
   const normalizedShares = enrichedMembers.value
     .filter((m) => m.includedInSplit)
-    .map((m) => ({ member_id: m.memberId, amount: m.finalSharePreview, weight: persistedSplitType === 'SHARE' ? (m.weight ?? null) : null }))
+    .map((m) => ({ member_id: m.memberId, amount: m.finalSharePreview, weight: form.splitType === 'SHARE' ? (m.weight ?? null) : null }))
     .filter((s) => s.amount > 0)
   const validation = validateExpenseDraft({
     title: form.title,
