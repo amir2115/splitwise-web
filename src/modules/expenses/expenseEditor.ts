@@ -1,12 +1,47 @@
 import type { SplitType } from '@/shared/api/types'
 import { parseAmountInput } from '@/shared/utils/format'
 
+export interface ShareWeightInput {
+  member_id: string
+  weight: number
+}
+
+export interface ResolvedShare {
+  member_id: string
+  amount: number
+  weight: number
+}
+
+export function resolveShareSplit(totalAmount: number, inputs: ShareWeightInput[]): ResolvedShare[] {
+  if (inputs.length === 0) return []
+  const totalWeight = inputs.reduce((sum, input) => sum + (input.weight > 0 ? input.weight : 0), 0)
+  if (totalWeight <= 0) {
+    return inputs.map((input) => ({ member_id: input.member_id, amount: 0, weight: input.weight }))
+  }
+  // Math.round is half-up — matches the backend's math.floor(x + 0.5) in app/services/crud_service.py
+  const raw = inputs.map((input) => ({
+    member_id: input.member_id,
+    amount: Math.round((totalAmount * Math.max(input.weight, 0)) / totalWeight),
+    weight: input.weight,
+  }))
+  const diff = totalAmount - raw.reduce((sum, r) => sum + r.amount, 0)
+  if (diff !== 0) {
+    let idxMax = 0
+    for (let i = 1; i < inputs.length; i++) {
+      if (inputs[i].weight > inputs[idxMax].weight) idxMax = i
+    }
+    raw[idxMax] = { ...raw[idxMax], amount: raw[idxMax].amount + diff }
+  }
+  return raw
+}
+
 export interface ExpenseEditorMemberDraft {
   memberId: string
   username: string
   includedInSplit: boolean
   payerAmountInput: string
   exactShareInput: string
+  weight?: number | null
 }
 
 export interface ServiceChargeDraftUi {
@@ -192,7 +227,14 @@ export function computeExpenseEditorState(params: {
   const baseShares =
     splitType === 'EQUAL'
       ? splitAmountDeterministically(baseAmountPreview, includedMembers.map((member) => member.memberId))
-      : Object.fromEntries(includedMembers.map((member) => [member.memberId, parseAmountInput(member.exactShareInput)]))
+      : splitType === 'SHARE'
+        ? Object.fromEntries(
+            resolveShareSplit(
+              baseAmountPreview,
+              includedMembers.map((member) => ({ member_id: member.memberId, weight: member.weight ?? 0 })),
+            ).map((r) => [r.member_id, r.amount]),
+          )
+        : Object.fromEntries(includedMembers.map((member) => [member.memberId, parseAmountInput(member.exactShareInput)]))
 
   const baseShareTotal = Object.values(baseShares).reduce((sum, amount) => sum + amount, 0)
   const taxShares =

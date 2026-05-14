@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { Expense } from '@/shared/api/types'
+import type { Expense, SplitType } from '@/shared/api/types'
 import { useAuthStore } from '@/shared/stores/auth'
 
 export const useExpensesStore = defineStore('expenses', () => {
@@ -28,9 +28,9 @@ export const useExpensesStore = defineStore('expenses', () => {
     title: string
     note: string | null
     total_amount: number
-    split_type: 'EQUAL' | 'EXACT'
+    split_type: SplitType
     payers: Array<{ member_id: string; amount: number }>
-    shares: Array<{ member_id: string; amount: number }>
+    shares: Array<{ member_id: string; amount: number; weight?: number | null }>
   }) {
     const authStore = useAuthStore()
     const { existingId, ...body } = payload

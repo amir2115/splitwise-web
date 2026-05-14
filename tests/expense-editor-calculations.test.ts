@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeExpenseEditorState, distributeProportionally, splitAmountDeterministically } from '@/modules/expenses/expenseEditor'
+import { computeExpenseEditorState, distributeProportionally, resolveShareSplit, splitAmountDeterministically } from '@/modules/expenses/expenseEditor'
 
 describe('expense editor calculations', () => {
   it('calculates remaining payer and base share amounts', () => {
@@ -81,5 +81,73 @@ describe('expense editor calculations', () => {
     const distributed = distributeProportionally(550, { '1': 3000, '2': 2000 })
     expect(Object.values(distributed).reduce((sum, amount) => sum + amount, 0)).toBe(550)
     expect(Object.values(distributed).every((amount) => amount >= 0)).toBe(true)
+  })
+})
+
+import { resolveShareSplit } from '@/modules/expenses/expenseEditor'
+
+describe('resolveShareSplit', () => {
+  it('distributes proportionally with equal weights', () => {
+    const result = resolveShareSplit(300, [
+      { member_id: 'a', weight: 1 },
+      { member_id: 'b', weight: 1 },
+      { member_id: 'c', weight: 1 },
+    ])
+    expect(result.map((r) => r.amount).reduce((s, n) => s + n, 0)).toBe(300)
+    expect(result.map((r) => r.amount).sort()).toEqual([100, 100, 100])
+  })
+
+  it('handles decimal weights with proportional distribution', () => {
+    const result = resolveShareSplit(450000, [
+      { member_id: 'a', weight: 2 },
+      { member_id: 'b', weight: 1.5 },
+      { member_id: 'c', weight: 0.5 },
+    ])
+    const byId = Object.fromEntries(result.map((r) => [r.member_id, r.amount]))
+    expect(byId.a).toBe(225000)
+    expect(byId.b).toBe(168750)
+    expect(byId.c).toBe(56250)
+    expect(result.map((r) => r.amount).reduce((s, n) => s + n, 0)).toBe(450000)
+  })
+
+  it('puts the rounding leftover on the heaviest weight', () => {
+    // total=100, weights=[1,1,1]; perShare ~33.33; rounded each = 33; sum=99; +1 leftover
+    const result = resolveShareSplit(100, [
+      { member_id: 'a', weight: 1 },
+      { member_id: 'b', weight: 1 },
+      { member_id: 'c', weight: 1 },
+    ])
+    expect(result.map((r) => r.amount).reduce((s, n) => s + n, 0)).toBe(100)
+    expect(result.map((r) => r.amount).sort()).toEqual([33, 33, 34])
+  })
+
+  it('returns zero amounts when all weights are zero', () => {
+    const result = resolveShareSplit(200, [
+      { member_id: 'a', weight: 0 },
+      { member_id: 'b', weight: 0 },
+    ])
+    expect(result.map((r) => r.amount)).toEqual([0, 0])
+  })
+
+  it('skips members with zero weight', () => {
+    const result = resolveShareSplit(200, [
+      { member_id: 'a', weight: 1 },
+      { member_id: 'b', weight: 1 },
+      { member_id: 'c', weight: 0 },
+    ])
+    const byId = Object.fromEntries(result.map((r) => [r.member_id, r.amount]))
+    expect(byId.a).toBe(100)
+    expect(byId.b).toBe(100)
+    expect(byId.c).toBe(0)
+  })
+
+  it('matches backend half-up rounding for total=5 with two equal weights', () => {
+    // Backend uses math.floor(x + 0.5) (half-up); for total=5 weights=[1,1]:
+    // perShare = 2.5, half-up → 3 each, sum=6, leftover=-1 absorbed by first max → [2, 3]
+    const result = resolveShareSplit(5, [
+      { member_id: 'a', weight: 1 },
+      { member_id: 'b', weight: 1 },
+    ])
+    expect(result.map((r) => r.amount)).toEqual([2, 3])
   })
 })
