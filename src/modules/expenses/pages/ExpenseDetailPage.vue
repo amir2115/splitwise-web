@@ -34,7 +34,9 @@ const memberName = (memberId: string) => members.value.find((item) => item.id ==
 
 const splitMethodLabel = computed(() => {
   if (!expense.value) return ''
-  return expense.value.split_type === 'EQUAL' ? strings.value.equalSplitLabel : strings.value.exactSplitLabel
+  if (expense.value.split_type === 'EQUAL') return strings.value.equalSplitLabel
+  if (expense.value.split_type === 'SHARE') return strings.value.shareSplitLabel
+  return strings.value.exactSplitLabel
 })
 
 const dateLabel = computed(() => expense.value ? formatDate(expense.value.created_at, language.value) : '')

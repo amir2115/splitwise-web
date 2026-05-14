@@ -59,7 +59,7 @@ const form = reactive({
   title: '',
   note: '',
   totalAmountInput: '',
-  splitType: 'EQUAL' as 'EQUAL' | 'EXACT',
+  splitType: 'EQUAL' as 'EQUAL' | 'EXACT' | 'SHARE',
   tax: { enabled: false, mode: 'percent', valueInput: '' } as TaxDraft,
   serviceCharges: [] as ServiceChargeDraftUi[],
   discount: { enabled: false, mode: 'percent', valueInput: '' } as DiscountDraft,
@@ -400,12 +400,12 @@ const singlePayerId = computed<string | null>(() => {
 const totalAmountValue = computed(() => parseAmountInput(form.totalAmountInput))
 
 // Pill indicator transform for the split-type segmented control.
-// DOM order is [EQUAL, EXACT]; the indicator is anchored at inset-inline-start: 3px,
-// so it sits on the EQUAL button by default. When EXACT is active we slide it to the
-// other button — translateX(+100%) in LTR, translateX(-100%) in RTL.
+// DOM order is [EQUAL, EXACT, SHARE]; the indicator is anchored at inset-inline-start: 3px,
+// so it sits on the EQUAL button by default. Slide to index 1 (EXACT) or index 2 (SHARE).
 const splitIndicatorStyle = computed(() => {
-  if (form.splitType !== 'EXACT') return { transform: 'translateX(0)' }
-  return { transform: isRtl.value ? 'translateX(-100%)' : 'translateX(100%)' }
+  if (form.splitType === 'EXACT') return { transform: isRtl.value ? 'translateX(-100%)' : 'translateX(100%)' }
+  if (form.splitType === 'SHARE') return { transform: isRtl.value ? 'translateX(-200%)' : 'translateX(200%)' }
+  return { transform: 'translateX(0)' }
 })
 
 const equalEachAmount = computed(() => {
@@ -413,6 +413,51 @@ const equalEachAmount = computed(() => {
   const baseAmount = computedState.value.baseAmountPreview
   return Math.floor(baseAmount / includedMembers.value.length)
 })
+
+// ---- SHARE mode computeds and helpers ----
+
+const shareTotalWeight = computed(() =>
+  form.members
+    .filter((m) => m.includedInSplit !== false)
+    .reduce((sum, m) => sum + (m.weight != null && m.weight > 0 ? m.weight : 0), 0),
+)
+
+const shareValuePerShare = computed(() =>
+  shareTotalWeight.value > 0
+    ? Math.round(parseAmountInput(form.totalAmountInput) / shareTotalWeight.value)
+    : 0,
+)
+
+function selectShareSplitType() {
+  form.splitType = 'SHARE'
+  for (const member of form.members) {
+    if (member.weight == null) member.weight = 1
+  }
+}
+
+function adjustWeight(member: ExpenseEditorMemberDraft, delta: number) {
+  const current = member.weight ?? 0
+  const next = Math.max(0, current + delta)
+  member.weight = next
+}
+
+function formatShareWeight(w?: number | null): string {
+  if (w == null) return '0'
+  return Number.isInteger(w) ? String(w) : w.toFixed(1)
+}
+
+function amountForShareMember(member: ExpenseEditorMemberDraft): number {
+  const total = parseAmountInput(form.totalAmountInput)
+  const totalWeight = shareTotalWeight.value
+  if (totalWeight <= 0) return 0
+  return Math.round(total * Math.max(member.weight ?? 0, 0) / totalWeight)
+}
+
+function setAllWeights(n: number) {
+  for (const member of form.members) {
+    member.weight = n
+  }
+}
 
 // In EXACT mode, members with no value entered yet.
 const emptyShareMembers = computed(() =>
@@ -1221,6 +1266,13 @@ watch(
           role="tab"
           @click="form.splitType = 'EXACT'"
         >{{ text.splitExact }}</button>
+        <button
+          class="segmented__btn"
+          :class="{ 'is-active': form.splitType === 'SHARE' }"
+          type="button"
+          role="tab"
+          @click="selectShareSplitType"
+        >{{ strings.shareSplitLabel }}</button>
       </div>
 
       <!-- Member shares preview/edit (animated content swap).
@@ -1259,7 +1311,7 @@ watch(
           </div>
         </div>
 
-        <div v-else key="exact" class="share-list share-list--exact">
+        <div v-else-if="form.splitType === 'EXACT'" key="exact" class="share-list share-list--exact">
           <div
             v-for="m in enrichedMembers"
             :key="`share-ex-${m.memberId}`"
@@ -1299,6 +1351,50 @@ watch(
               @toggle="toggleBreakdown(m.memberId)"
             />
           </div>
+        </div>
+
+        <div v-else key="share-weight" class="share-list share-list--share">
+          <p class="share-subtitle">{{ strings.shareSplitSubtitle }}</p>
+
+          <div class="share-summary">
+            <div class="share-summary__tile share-summary__tile--brand">
+              <span class="share-summary__label">{{ strings.shareValuePerShare }}</span>
+              <span class="share-summary__value num">
+                <template v-if="shareValuePerShare > 0">{{ formatAmount(shareValuePerShare, language) }}</template>
+                <template v-else>—</template>
+              </span>
+            </div>
+            <div class="share-summary__tile">
+              <span class="share-summary__label">{{ strings.shareTotalShares }}</span>
+              <span class="share-summary__value num">{{ formatShareWeight(shareTotalWeight) }}</span>
+            </div>
+          </div>
+
+          <article
+            v-for="m in form.members"
+            :key="`share-w-${m.memberId}`"
+            class="share-weight-row"
+          >
+            <Avatar :name="m.username" :size="28" />
+            <div class="share-weight-row__body">
+              <span class="share-weight-row__name"><UsernameHandle :username="m.username" /></span>
+            </div>
+            <div class="share-stepper">
+              <button type="button" class="share-stepper__btn" aria-label="−" @click="adjustWeight(m, -0.5)">−</button>
+              <span class="share-stepper__value num">{{ formatShareWeight(m.weight) }}</span>
+              <button type="button" class="share-stepper__btn share-stepper__btn--brand" aria-label="+" @click="adjustWeight(m, 0.5)">+</button>
+            </div>
+            <span class="share-weight-row__amount num">{{ formatAmount(amountForShareMember(m), language) }}</span>
+          </article>
+
+          <div class="share-presets">
+            <button type="button" class="share-preset" @click="setAllWeights(1)">{{ strings.sharePresetAllOne }}</button>
+            <button type="button" class="share-preset" @click="setAllWeights(2)">{{ strings.sharePresetAdults }}</button>
+            <button type="button" class="share-preset" @click="setAllWeights(0.5)">{{ strings.sharePresetKids }}</button>
+            <button type="button" class="share-preset" @click="setAllWeights(0)">{{ strings.sharePresetSkip }}</button>
+          </div>
+
+          <p class="share-tip">{{ strings.shareTip }}</p>
         </div>
       </Transition>
 
@@ -1981,7 +2077,7 @@ watch(
   position: absolute;
   top: 3px;
   bottom: 3px;
-  width: calc(50% - 3px);
+  width: calc(33.333% - 2px);
   background: var(--surface);
   border-radius: var(--r-sm);
   box-shadow: var(--shadow-1);
@@ -2662,5 +2758,116 @@ watch(
   .payer-row { grid-template-columns: 32px minmax(0, 1fr) auto; }
   .payer-row__chips { grid-column: 1 / -1; }
   .dual-input { grid-template-columns: 1fr; }
+}
+
+/* ---- SHARE mode UI ---- */
+.share-subtitle {
+  font-size: 12px;
+  color: var(--fg-muted);
+  margin: 0 0 12px;
+}
+.share-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.share-summary__tile {
+  padding: 12px 14px;
+  background: var(--surface-sunk);
+  border-radius: var(--r-md);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.share-summary__tile--brand {
+  background: var(--brand-soft);
+}
+.share-summary__label {
+  font-size: 11px;
+  font-weight: var(--fw-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-subtle);
+}
+.share-summary__tile--brand .share-summary__label { color: var(--brand); }
+.share-summary__value {
+  font-size: 18px;
+  font-weight: var(--fw-bold);
+  color: var(--fg);
+}
+.share-summary__tile--brand .share-summary__value { color: var(--brand); }
+
+.share-weight-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+}
+.share-weight-row + .share-weight-row { border-top: 1px solid var(--divider); }
+.share-weight-row__body { flex: 1; min-width: 0; }
+.share-weight-row__name { font-size: 14px; font-weight: var(--fw-semibold); }
+.share-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface-sunk);
+  padding: 3px;
+  border-radius: var(--r-sm);
+}
+.share-stepper__btn {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--fg-muted);
+  font-size: 16px;
+  font-weight: var(--fw-bold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 0;
+}
+.share-stepper__btn--brand {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.share-stepper__value {
+  min-width: 36px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+.share-weight-row__amount {
+  min-width: 76px;
+  text-align: end;
+  font-size: 14px;
+  font-weight: var(--fw-semibold);
+  color: var(--brand);
+}
+.share-presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.share-preset {
+  padding: 6px 10px;
+  background: var(--surface-sunk);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: var(--fw-medium);
+  color: var(--fg);
+  cursor: pointer;
+}
+.share-preset:hover { background: var(--hover); }
+.share-tip {
+  font-size: 12px;
+  color: var(--fg-muted);
+  line-height: 1.55;
+  margin: 0;
 }
 </style>
