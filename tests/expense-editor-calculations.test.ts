@@ -150,4 +150,13 @@ describe('resolveShareSplit', () => {
     ])
     expect(result.map((r) => r.amount)).toEqual([2, 3])
   })
+
+  it('preserves weight in resolved output for SHARE mode', () => {
+    const result = resolveShareSplit(300, [
+      { member_id: 'a', weight: 2 },
+      { member_id: 'b', weight: 1 },
+    ])
+    expect(result.find((r) => r.member_id === 'a')?.weight).toBe(2)
+    expect(result.find((r) => r.member_id === 'b')?.weight).toBe(1)
+  })
 })

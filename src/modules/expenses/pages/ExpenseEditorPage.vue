@@ -1000,7 +1000,7 @@ async function submit() {
     .filter((p) => p.amount > 0)
   const normalizedShares = enrichedMembers.value
     .filter((m) => m.includedInSplit)
-    .map((m) => ({ member_id: m.memberId, amount: m.finalSharePreview }))
+    .map((m) => ({ member_id: m.memberId, amount: m.finalSharePreview, weight: form.splitType === 'SHARE' ? (m.weight ?? null) : null }))
     .filter((s) => s.amount > 0)
 
   const persistedSplitType =

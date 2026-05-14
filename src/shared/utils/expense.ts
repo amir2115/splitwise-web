@@ -59,7 +59,7 @@ export function validateExpenseDraft(input: {
     return { isValid: false, messageKey: 'EXPENSE_PAYER_TOTAL_MISMATCH', normalizedShares: [] }
   }
 
-  if (splitType === 'EXACT') {
+  if (splitType === 'EXACT' || splitType === 'SHARE') {
     const shareTotal = shares.reduce((sum, item) => sum + item.amount, 0)
     if (shareTotal !== totalAmount) {
       return { isValid: false, messageKey: 'EXPENSE_SHARE_TOTAL_MISMATCH', normalizedShares: [] }
