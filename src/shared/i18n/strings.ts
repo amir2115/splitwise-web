@@ -269,6 +269,15 @@ export interface AppStrings {
   expenseOwesLabel: string
   expenseShareLabel: string
   expensePaidLabel: string
+  shareSplitLabel: string
+  shareSplitSubtitle: string
+  shareValuePerShare: string
+  shareTotalShares: string
+  shareTip: string
+  sharePresetAllOne: string
+  sharePresetAdults: string
+  sharePresetKids: string
+  sharePresetSkip: string
   personalSummaryTitle: string
   receivablesLabel: string
   payablesLabel: string
@@ -621,6 +630,15 @@ const fa: AppStrings = {
   expenseOwesLabel: 'بدهی',
   expenseShareLabel: 'سهم',
   expensePaidLabel: 'پرداخت',
+  shareSplitLabel: 'سهم وزنی',
+  shareSplitSubtitle: 'هر نفر چند سهم می‌گیرد؟',
+  shareValuePerShare: 'ارزش هر سهم',
+  shareTotalShares: 'مجموع سهم‌ها',
+  shareTip: 'اگر کسی ۲ پرس خورده، ۲ سهم بهش بده. فقط نوشیدنی؟ ۰.۵.',
+  sharePresetAllOne: '۱× همه',
+  sharePresetAdults: '۲× بزرگسال',
+  sharePresetKids: '۰.۵× بچه‌ها',
+  sharePresetSkip: '۰ برای رد شدن',
   personalSummaryTitle: 'خلاصه وضعیت من',
   receivablesLabel: 'طلبکاری‌ها',
   payablesLabel: 'بدهکاری‌ها',
@@ -973,6 +991,15 @@ const en: AppStrings = {
   expenseOwesLabel: 'Owes',
   expenseShareLabel: 'Share',
   expensePaidLabel: 'Paid',
+  shareSplitLabel: 'By share',
+  shareSplitSubtitle: 'How many shares does each person take?',
+  shareValuePerShare: 'Value per share',
+  shareTotalShares: 'Total shares',
+  shareTip: 'If someone ate 2 portions, give them 2 shares. Just a drink? 0.5.',
+  sharePresetAllOne: '1× all',
+  sharePresetAdults: '2× adults',
+  sharePresetKids: '0.5× kids',
+  sharePresetSkip: '0 to skip',
   personalSummaryTitle: 'My summary',
   receivablesLabel: 'To receive',
   payablesLabel: 'To pay',
