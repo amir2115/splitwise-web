@@ -1,6 +1,6 @@
 export type AppLanguage = 'fa' | 'en'
 export type ThemeMode = 'light' | 'dark'
-export type SplitType = 'EQUAL' | 'EXACT'
+export type SplitType = 'EQUAL' | 'EXACT' | 'SHARE'
 export type MembershipStatus = 'ACTIVE' | 'PENDING_INVITE'
 export type InviteStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED'
 
@@ -214,6 +214,7 @@ export interface GroupInvite {
 export interface ExpenseParticipantAmount {
   member_id: string
   amount: number
+  weight?: number | null
 }
 
 export interface Expense {
