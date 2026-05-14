@@ -57,8 +57,10 @@ export default defineConfig({
         ],
       },
       workbox: {
+        cacheId: 'dongino-web-2026-05-redesign',
         cleanupOutdatedCaches: true,
         clientsClaim: true,
+        importScripts: ['/sw-cache-reset.js'],
         navigateFallback: '/index.html',
         skipWaiting: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,ttf,webmanifest}'],
@@ -67,7 +69,7 @@ export default defineConfig({
             urlPattern: /^https:\/\/api\.splitwise\.ir\/api\/v1\/.*/i,
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'api-runtime-cache',
+              cacheName: 'dongino-api-runtime-cache-v2',
               networkTimeoutSeconds: 8,
               expiration: {
                 maxEntries: 32,
