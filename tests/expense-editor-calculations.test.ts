@@ -84,8 +84,6 @@ describe('expense editor calculations', () => {
   })
 })
 
-import { resolveShareSplit } from '@/modules/expenses/expenseEditor'
-
 describe('resolveShareSplit', () => {
   it('distributes proportionally with equal weights', () => {
     const result = resolveShareSplit(300, [

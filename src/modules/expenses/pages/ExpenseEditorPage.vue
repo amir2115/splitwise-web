@@ -998,15 +998,14 @@ async function submit() {
   const payers = form.members
     .map((m) => ({ member_id: m.memberId, amount: parseAmountInput(m.payerAmountInput) }))
     .filter((p) => p.amount > 0)
-  const normalizedShares = enrichedMembers.value
-    .filter((m) => m.includedInSplit)
-    .map((m) => ({ member_id: m.memberId, amount: m.finalSharePreview, weight: form.splitType === 'SHARE' ? (m.weight ?? null) : null }))
-    .filter((s) => s.amount > 0)
-
   const persistedSplitType =
     form.tax.enabled || form.serviceCharges.some((c) => parseAmountInput(c.amountInput) > 0) || form.discount.enabled
       ? 'EXACT'
       : form.splitType
+  const normalizedShares = enrichedMembers.value
+    .filter((m) => m.includedInSplit)
+    .map((m) => ({ member_id: m.memberId, amount: m.finalSharePreview, weight: persistedSplitType === 'SHARE' ? (m.weight ?? null) : null }))
+    .filter((s) => s.amount > 0)
   const validation = validateExpenseDraft({
     title: form.title,
     totalAmount: finalGrandTotal,
